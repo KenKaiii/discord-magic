@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+!.env.example
+backups/
+*.exported.ts
+coverage/
+.DS_Store
+*.log
+.tmp/
