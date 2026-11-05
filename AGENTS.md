@@ -44,7 +44,8 @@ can do, recipes and message styling. The others go deeper:
 | Command                   | What it does                                                                                                                                   |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run doctor`          | Checks token, invite, permissions, intents, role order, config, Railway CLI/login and GitHub auto-deploys. Start here when anything is off. |
-| `npm run invite`          | Prints the bot's invite link for the user's server.                                                                                            |
+| `npm run invite`          | Prints the bot's invite link (`-- --open` opens it in the browser; `-- --for "<link>"` preselects the server on another bot's invite). |
+| `npm run server:pick`     | After the invite, saves the server's ID to `.env` (the bot reads which servers it's in). `-- <id>` when it's in several. |
 | `npm run server:plan`     | Shows what would change in Discord to match `server.config.ts`. Read-only.                                                                     |
 | `npm run server:apply`    | Backs up the current structure, applies the plan, verifies.                                                                                    |
 | `npm run server:backup`   | Saves the server structure to `backups/`.                                                                                                      |

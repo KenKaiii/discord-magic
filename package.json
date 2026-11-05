@@ -17,6 +17,7 @@
     "server:plan": "node --env-file-if-exists=.env scripts/server.ts plan",
     "server:apply": "node --env-file-if-exists=.env scripts/server.ts apply",
     "server:export": "node --env-file-if-exists=.env scripts/server.ts export",
+    "server:pick": "node --env-file-if-exists=.env scripts/pick-server.ts",
     "server:backup": "node --env-file-if-exists=.env scripts/server.ts backup",
     "deploy": "node --env-file-if-exists=.env scripts/railway-deploy.ts",
     "logs": "railway logs --service discord-bot",

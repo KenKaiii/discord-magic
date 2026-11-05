@@ -14,6 +14,12 @@ You do the work; they make decisions and click the few things only they can clic
   (say "channel settings", not "permission overwrites"; "online 24/7", not "deployed").
 - **Do everything you safely can yourself.** Only hand a step to the user when it physically
   needs their browser, Discord account, or a decision. Never ask them to run commands you can run.
+- **Open links for them.** When a step happens on a web page (Developer Portal, an invite, a
+  Railway or GitHub approval), open it in their browser yourself (macOS `open <url>`, Linux
+  `xdg-open <url>`, Windows `start "" "<url>"`; `npm run invite -- --open` does it for invites) and
+  still show the link in case nothing opened. Their part is the click.
+- **They paste, you save.** Tokens, keys and IDs get pasted to you; you write `.env` and Railway.
+  Never ask them to open a file, edit config, or type in a terminal.
 - **When the user must act**, give a numbered list, one action per line, with the exact button
   names in **bold** and the direct link. Max ~5 steps. End with "Tell me when that's done." Example:
 
@@ -38,19 +44,18 @@ Everything else is yours. These need the user (give them the steps above):
 
 | Thing | Steps to give |
 |---|---|
-| Get the bot token and server ID | Ask for both in one message (`discord-setup` steps 1-2), they paste them back to you, you write `.env`. |
+| Get the bot token | Open the Developer Portal for them, give the steps (`discord-setup` step 1), they paste the token back, you write `.env`. The server ID is never their job: `npm run server:pick` reads it after the invite. |
 | Get an API key or secret for a feature (YouTube, OpenAI, Stripe...) | Tell them exactly where (link + clicks) and to paste it back to you. You add it to `.env.example` (with that where-to-get-it note) and `.env`, then `npm run deploy` puts it on Railway. |
 | Turn on a privileged intent | https://discord.com/developers/applications/<app id>/bot → **Privileged Gateway Intents** → toggle → **Save Changes**. `npm run doctor` prints the exact link and toggle name. |
-| Get the server ID | Discord **User Settings → Advanced → Developer Mode** on; right-click the server icon → **Copy Server ID**. |
-| Invite this bot | Run `npm run invite` and give them the link → they pick nothing and click **Authorize**. |
-| Invite another bot (MEE6, Carl-bot, etc.) | In Discord (desktop or browser): **server name → Server Settings → App Directory** → search the bot → **Add App** → pick the server → **Authorize**. Or use the invite button on the bot's official site. Needs **Manage Server**. Then you add it to `otherBots`. |
+| Invite this bot | You run `npm run invite -- --open`; they pick the server (preselected once known) and click **Authorize**. Then you run `npm run server:pick`. |
+| Invite another bot (MEE6, Carl-bot, etc.) | You find its official invite link and run `npm run invite -- --for "<link>" --open` (see "Add another bot"); they click **Authorize**. Needs **Manage Server**. Then you add it to `otherBots`. |
 | Move the bot's role above others | **Server Settings → Roles** → drag the bot's role to the top. |
 | Turn on Community (needed for announcement/stage channels, the rules channel, onboarding, discovery) | **server name → Server Settings → Enable Community → Get Started**, follow the steps, then **Finish Setup**. Discord requires: verification level at least "low" (verified email), explicit content filter on all members, a rules channel and a community-updates channel. The starter config already sets the first two; pick #rules and #mod-log in the wizard. |
 | Sign in to Railway (also creates the account) | You install the CLI if missing (`npm i -g @railway/cli`) and run `railway login`; they sign in and click **Authorize** in the browser page that opens. |
 | Pay for Railway / pick a workspace | Their call; ask before the first deploy. |
 | Sign in to GitHub (for auto-deploys) | You install `gh` if missing and run `gh auth login --web`; they enter the code shown in the browser. |
 | Let Railway see their GitHub repo | Only if `npm run deploy -- --github` says it can't: https://github.com/apps/railway-app/installations/new → their account → **Only select repositories** → the repo → **Install**. |
-| Upload a server icon/banner image | Ask them to drop the image file into the project (e.g. `assets/icon.png`); you wire it up. |
+| Choose a server icon/banner image | Ask for a link to the image (or where it is on their computer, e.g. "Downloads/logo.png"); you copy it into `assets/` and wire it up. |
 
 ## Map of the project
 
@@ -141,7 +146,8 @@ purpose is already recorded there, don't ask again.
    bot itself to match (next recipe).
 
 ### Bot's look (avatar, banner, name, About Me, status)
-You do all of this; the user only supplies images (dropped into `assets/`) and picks wording.
+You do all of this; the user only supplies images (a link or where the file is; you copy it into
+`assets/`) and picks wording.
 Write a short one-off script in `.tmp/` (gitignored), using `createRest` from
 `src/discord/rest.ts`, run it with `node --env-file=.env .tmp/<name>.ts`, then delete it. Images go
 as data URIs (`data:image/png;base64,...`); square PNG for avatars.
@@ -177,7 +183,13 @@ before anything that kicks/bans/removes roles in bulk, show the count first.
 ### Add another bot (music, moderation, levels, tickets...)
 1. Recommend a well-known bot that fits (or offer to build the feature into this bot instead:
    no extra bot, full control, matches the brand).
-2. Give the user the invite steps (table above).
+2. Get the invite ready yourself: find the bot's official invite link (its website's "Add to
+   Discord" / "Invite" button, or its page in Discord's App Directory; check it's the official
+   bot, not a copycat). Short links like `bot-site.com/invite` redirect: follow them
+   (`curl -sIL <link> | grep -i ^location`) to the `discord.com/oauth2/authorize?client_id=...`
+   URL. Then `npm run invite -- --for "<that url>" --open`: it preselects their server and opens
+   it, so they only click **Authorize**. If you can't find a link, the fallback is in Discord:
+   **server name → Server Settings → App Directory** → search → **Add App**.
 3. Add its role name (what Discord shows in **Server Settings → Roles**, usually the bot's
    name) to `otherBots` in `server.config.ts`, and grant it channel access where needed, e.g.
    `{ role: "MEE6", allow: ["ViewChannel", "SendMessages"] }` in a hidden channel.

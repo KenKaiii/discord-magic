@@ -27,53 +27,65 @@ npm run doctor
 the first FAIL. If everything is `ok`, setup is done; go to step 6 or 7. `warn` lines about
 Railway mean step 7 isn't finished yet.
 
-## 1-2. Get every value in one go (user does this in the browser)
+## 1. Bot token (user does this in the browser)
 
-`.env.example` lists every variable the bot needs, each with a comment saying where to get it. Ask
-for all the empty ones in **one message**, as numbered steps, and have the user paste the values
-straight back to you. For a fresh clone that's the token and the server ID:
+`.env.example` lists every variable the bot needs, each with a comment saying where to get it.
+Fill in whatever you can yourself (the server ID comes from step 2) and ask for the rest in **one
+message**. For a fresh clone that's only the token. Open the page for them first (macOS
+`open <url>`, Linux `xdg-open <url>`, Windows `start "" "<url>"`), and still show the link in case
+no browser opens:
 
-> I need 2 things from you. Paste both back here when you have them:
->
-> **1. Your bot token**
-> 1. Open https://discord.com/developers/applications and click **New Application**. The name is
->    your bot's name. Click **Create**.
-> 2. Left menu **Bot** → **Reset Token** → **Copy**.
+> I just opened the Discord Developer Portal for you (https://discord.com/developers/applications):
+> 1. Click **New Application**, name it (that's your bot's name) and click **Create**.
+> 2. Left menu **Bot** → **Reset Token** → **Copy**, then paste it here.
 > 3. Same page, under **Privileged Gateway Intents**, turn on **Server Members Intent** →
 >    **Save Changes**.
 >
-> **2. Your server ID**
-> 1. No server yet? Click **+** at the bottom of your server list → **Create My Own**.
-> 2. **User Settings** (cog, bottom-left) → **Advanced** → turn on **Developer Mode**. On mobile:
->    your avatar → cog → **Advanced** → **Developer Mode**.
-> 3. Right-click your server's icon → **Copy Server ID** (mobile: tap the server name →
->    **Copy Server ID**).
+> No Discord server yet? In Discord, click **+** at the bottom of your server list →
+> **Create My Own**.
 
-When they paste them:
+When they paste it:
 
 ```bash
 test -f .env || cp .env.example .env
 ```
 
-Then put each value in `.env` with a file edit (`DISCORD_TOKEN=`, `DISCORD_GUILD_ID=`). Never echo
-a value, put it in a shell command, or repeat it back; just confirm "Got both, saved." If they
-only send one, ask for the other. `npm run doctor` names anything still missing, with the same
-where-to-get-it note. Railway gets the same values later from `npm run deploy`, so they never
-type them in twice.
+Then set `DISCORD_TOKEN=` in `.env` with a file edit. Never echo it, put it in a shell command, or
+repeat it back; just confirm "Got it, saved." `npm run doctor` names anything still missing, with
+the same where-to-get-it note. Railway gets the values later from `npm run deploy`, so the user
+never types anything in twice, and never edits `.env` or the Railway dashboard.
 
-## 3. Invite the bot
+## 2. Invite the bot and find the server (one click for the user)
 
 ```bash
-npm run invite
+npm run invite -- --open
 ```
 
-Give the user the printed link. They open it, pick nothing (the server is preselected), click
-Authorize. The link grants Administrator so `server:apply` can set any permission; if the user
-wants a scoped bot, use `npm run invite -- --minimal` and expect permission errors for roles that
-grant more than the bot has.
+It opens the invite in their browser. Tell them:
 
-If the server already has roles: Server Settings -> Roles -> drag the bot's role (same name as
-the app) to the top.
+> A Discord page just opened: pick your server and click **Authorize**. Tell me when that's done.
+
+Then save the server ID yourself:
+
+```bash
+npm run server:pick
+```
+
+The bot reads which servers it's in. If it's in exactly one, it saves that ID to `.env`. If it's in
+several, it lists them: ask the user which one by **name** (choices), then
+`npm run server:pick -- <id>`. Never send them to Developer Mode unless this fails.
+
+The invite grants Administrator so `server:apply` can set any permission; if the user wants a
+scoped bot, use `npm run invite -- --minimal --open` and expect permission errors for roles that
+grant more than the bot has. Once the server ID is saved, `npm run invite` preselects it, so a
+re-invite is just **Authorize**.
+
+## 3. Existing server with roles?
+
+If the server already has roles, the bot's role must be above them (a Discord-only step):
+
+> In Discord: **Server Settings → Roles**, drag **<bot name>** to the very top, then
+> **Save Changes**. Tell me when that's done.
 
 ## 4. Verify
 

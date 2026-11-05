@@ -82,7 +82,8 @@ Doing it by hand:
 
 ```bash
 cp .env.example .env     # fill in every empty KEY=; the comments say where to get each
-npm run invite           # add the bot to your server
+npm run invite -- --open # add the bot to your server
+npm run server:pick      # save your server's ID to .env
 npm run doctor           # fix anything marked FAIL
 npm run server:plan      # preview the server
 npm run server:apply     # build it

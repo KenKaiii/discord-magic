@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { DiscordAPIError, type REST, Routes } from "discord.js";
 import { EnvError } from "../src/env.ts";
@@ -75,4 +76,49 @@ export function inviteUrl(
     params.set("disable_guild_select", "true");
   }
   return `https://discord.com/oauth2/authorize?${params}`;
+}
+
+/**
+ * Invite link for another bot (MEE6, Carl-bot...) from its official discord.com invite URL, with
+ * the user's server preselected so they only click Authorize. A bare application ID gives the
+ * Discord-provided link, which uses that bot's own default permissions.
+ */
+export function otherBotInvite(input: string, guildId: string | undefined): string {
+  const trimmed = input.trim();
+  if (/^\d{17,20}$/.test(trimmed))
+    return `https://discord.com/oauth2/authorize?client_id=${trimmed}`;
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    throw new Error(`"${trimmed}" isn't a link or an application ID.`);
+  }
+  const host = url.hostname.replace(/^(www|ptb|canary)\./, "");
+  if (
+    !["discord.com", "discordapp.com"].includes(host) ||
+    !/^\/(api\/)?oauth2\/authorize\/?$/.test(url.pathname) ||
+    !url.searchParams.get("client_id")
+  )
+    throw new Error(
+      "That isn't a Discord invite link (discord.com/oauth2/authorize?client_id=...). If the bot's site gives a short link, follow its redirect to get the full one.",
+    );
+  url.hostname = "discord.com";
+  url.pathname = "/oauth2/authorize";
+  if (guildId && (url.searchParams.get("scope") ?? "").split(/[\s+]/).includes("bot")) {
+    url.searchParams.set("guild_id", guildId);
+    url.searchParams.set("disable_guild_select", "true");
+  }
+  return url.toString();
+}
+
+/** Opens a link in the user's browser. False when there's no browser (SSH, CI, containers). */
+export function openInBrowser(url: string): boolean {
+  const [cmd, args] =
+    process.platform === "darwin"
+      ? ["open", [url]]
+      : process.platform === "win32"
+        ? ["rundll32", ["url.dll,FileProtocolHandler", url]]
+        : ["xdg-open", [url]];
+  const result = spawnSync(cmd, args, { stdio: "ignore", timeout: 10_000 });
+  return !result.error && result.status === 0;
 }

@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { inviteUrl, ROOT } from "./_shared.ts";
+import { inviteUrl, otherBotInvite, ROOT } from "./_shared.ts";
+import { setEnvValue } from "./pick-server.ts";
 import { isSupportedCliVersion, parseGitHubRepo, railwayEnv, readLinks } from "./railway-deploy.ts";
 import { MIRRORS, SOURCE } from "./sync-skills.ts";
 import { missingVariables, parseVariables, readVariables } from "./variables.ts";
@@ -88,5 +89,43 @@ describe("variables (.env.example)", () => {
     const specs = readVariables();
     expect(specs.map((v) => v.key)).toEqual(["DISCORD_TOKEN", "DISCORD_GUILD_ID"]);
     for (const v of specs) expect(v.help, v.key).toMatch(/\S{10,}/);
+  });
+});
+
+describe("invites without copying IDs by hand", () => {
+  it("lets the user pick the server when its ID isn't known yet", () => {
+    const url = new URL(inviteUrl("111", undefined));
+    expect(url.searchParams.has("guild_id")).toBe(false);
+    expect(url.searchParams.get("client_id")).toBe("111");
+  });
+
+  it("preselects the server on another bot's official invite link", () => {
+    const url = new URL(
+      otherBotInvite(
+        "https://discordapp.com/api/oauth2/authorize?client_id=159985870458322944&permissions=8&scope=bot%20applications.commands",
+        "222",
+      ),
+    );
+    expect(url.origin + url.pathname).toBe("https://discord.com/oauth2/authorize");
+    expect(url.searchParams.get("permissions")).toBe("8");
+    expect(url.searchParams.get("guild_id")).toBe("222");
+    expect(url.searchParams.get("disable_guild_select")).toBe("true");
+  });
+
+  it("uses the Discord-provided link for a bare application ID and rejects other links", () => {
+    expect(otherBotInvite("159985870458322944", "222")).toBe(
+      "https://discord.com/oauth2/authorize?client_id=159985870458322944",
+    );
+    expect(() => otherBotInvite("https://mee6.xyz/add", "222")).toThrow(/redirect/);
+    expect(() => otherBotInvite("https://evil.com/oauth2/authorize?client_id=1", "2")).toThrow();
+  });
+
+  it("writes the server ID into .env without touching other lines", () => {
+    expect(setEnvValue("DISCORD_TOKEN=abc\nDISCORD_GUILD_ID=\n", "DISCORD_GUILD_ID", "9")).toBe(
+      "DISCORD_TOKEN=abc\nDISCORD_GUILD_ID=9\n",
+    );
+    expect(setEnvValue("DISCORD_TOKEN=abc", "DISCORD_GUILD_ID", "9")).toBe(
+      "DISCORD_TOKEN=abc\nDISCORD_GUILD_ID=9\n",
+    );
   });
 });
