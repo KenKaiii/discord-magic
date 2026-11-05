@@ -96,6 +96,13 @@ when building similar features:
   fetch/parse failure log and skip that cycle; it must never crash the bot. YouTube has a per-channel
   feed: `https://www.youtube.com/feeds/videos.xml?channel_id=<id>`. Unit-test the filtering and
   "should post" logic; feed bugs are silent otherwise.
+- **Feeds break quietly; make it loud.** Prefer official RSS/Atom feeds or APIs. Scraping a web
+  page breaks whenever the site is redesigned: in the production bot, 3 of its page scrapers were
+  quietly finding nothing after redesigns. If you must scrape, throw when it finds 0 items, so
+  "nothing new" and "broken" look different. Count consecutive failed cycles per source in storage,
+  and after about 6 in a row post one card to `mod-log` ("<source> has been failing since
+  <t:UNIX:R>"), plus one when it recovers. Add a `scripts/test-feeds.ts` that fetches every source
+  without Discord and prints item counts, so you can check all feeds in seconds.
 - **Pings are opt-in.** Nobody gets pinged unless they chose to: make one role per kind of ping
   ("Event Pings", "News Pings") and give members toggle buttons on a pinned message in #welcome
   (`customId` like `"pings:news"`; clicking adds the role, clicking again removes it, with an ephemeral

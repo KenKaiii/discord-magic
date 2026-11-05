@@ -188,6 +188,26 @@ If `railway config apply` reports it would delete something, stop and show the u
 `.railway/railway.ts` (and new secret variables listed there with `preserve()`), or the next apply
 will try to remove it.
 
+## Moving an existing Railway bot off railway.json / railway.toml
+
+Railway stops reading `railway.json` / `railway.toml` on **2026-12-01**; services that still use
+them need `.railway/railway.ts`. If the user brings an older bot that's already on Railway:
+
+1. Link the folder to its project (`railway link`), then `npm i -D -E railway` (the SDK
+   `.railway/railway.ts` imports).
+2. `railway config pull` imports the live setup: services, volumes and their mounts, and variables
+   as `preserve()` (values never written to the file). It also writes `.railway/README.md`, which is
+   fine to keep. `railway config migrate` (a dry run by default) shows how the old file's
+   build/start settings translate; copy those into the pulled file instead of applying migrate
+   over it.
+3. `railway config plan` must show **0 to destroy**. Show the user the plan in plain words, and get
+   a yes before `railway config apply --yes`.
+4. Delete the old file, commit, redeploy the way that project normally deploys, and check the logs.
+   A service with a volume has a few seconds of downtime on redeploy; startup logs that re-seed or
+   recreate data mean the volume didn't reattach, so stop and tell the user.
+
+Never pass `--confirm-destructive`, above all when there's a volume: it holds the bot's data.
+
 ## Troubleshooting
 
 | Symptom                             | Fix                                                                                           |

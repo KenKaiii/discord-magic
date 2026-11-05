@@ -96,8 +96,28 @@ server."
 4. Every text channel gets a one-line `topic` that tells people what goes there.
 5. Read-only info channels: `@everyone` deny `SendMessages`; staff channels hidden from
    `@everyone`.
-6. Set `bot.brandColor` to match the server's look and write a warm welcome card.
-7. Plan → explain in 4-6 bullets → apply → `npm run deploy` if `bot:` changed.
+6. Keep #welcome for one pinned guide (what each channel is for, with clickable `<#id>` links,
+   plus opt-in ping buttons) and post join greetings somewhere else (`new-members` or
+   `introductions`), so the guide never gets buried. The starter config posts greetings in
+   #welcome; suggest this split when building out a real server. Pinned-guide pattern: "Proven
+   patterns" in `discord-bot-feature`.
+7. Set `bot.brandColor` to match the server's look and write a warm welcome card.
+8. Plan → explain in 4-6 bullets → apply → `npm run deploy` if `bot:` changed. Offer to style the
+   bot itself to match (next recipe).
+
+### Bot's look (avatar, banner, name, About Me, status)
+You do all of this; the user only supplies images (dropped into `assets/`) and picks wording.
+Write a short one-off script in `.tmp/` (gitignored), using `createRest` from
+`src/discord/rest.ts`, run it with `node --env-file=.env .tmp/<name>.ts`, then delete it. Images go
+as data URIs (`data:image/png;base64,...`); square PNG for avatars.
+
+| Want | Call |
+| --- | --- |
+| Avatar / banner everywhere | `PATCH /users/@me` with `avatar` / `banner` (`Routes.user()`). Avatar changes are rate-limited: change it rarely, and if Discord refuses, wait and retry later. |
+| Different look in just this server | `PATCH /guilds/{id}/members/@me` with `nick`, `avatar`, `banner`, `bio` (`Routes.guildMember(guildId, "@me")`). |
+| Bot's name | `PATCH /users/@me` with `username`, or Developer Portal → **Bot** → **Username**. A per-server `nick` is often all they want. |
+| About Me text on its profile | `PATCH /applications/@me` with `description` (`Routes.currentApplication()`). |
+| Status line ("Helping 120 builders") | A small feature that runs on ready: `client.user.setPresence({ activities: [{ name: "status", type: ActivityType.Custom, state: "..." }] })`. Deploy to apply. |
 
 ### Rename / re-describe / restyle something
 Change `name`/`topic`/`color` and add `renamedFrom: "old name"` for renames so history and members
@@ -230,3 +250,7 @@ Style rules:
 - Keep the docs true: if you add a config field, command or feature, update
   `docs/server-config.md`, `AGENTS.md` and this skill's tables if they change. (`/help` lists
   commands automatically from `src/bot/commands/index.ts`.)
+- Remember the user's decisions. When they decide something on purpose ("no #introductions
+  channel", "never ping @everyone", "times in Sydney time"), add one line to **Project decisions**
+  in `AGENTS.md`. Read that section before suggesting changes, and never undo a decision there
+  without asking.

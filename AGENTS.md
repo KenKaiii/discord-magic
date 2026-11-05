@@ -97,3 +97,10 @@ Dockerfile                Production image Railway builds.
 - Discord stores text channel names lowercase with dashes; the config normalises them.
 - Members, messages, emojis, invites, onboarding and AutoMod are not managed by
   `server.config.ts`. Extend `src/server/` if the user needs them.
+
+## Project decisions
+
+Choices the user made on purpose. Read before suggesting changes; never undo one without asking.
+Add one line per decision as they come up (see the `discord-magic` skill).
+
+- None yet.
