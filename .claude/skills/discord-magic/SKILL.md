@@ -122,20 +122,24 @@ before anything that kicks/bans/removes roles in bulk, show the count first.
 4. Plan → apply. Configure that bot itself on its own dashboard (give the user the link).
 
 ### Automations ("when someone X, do Y", "every Monday post Z")
-Build a feature in `src/bot/features/` (see "Writing an automation" below). Common ones:
-- Reaction/button role picker (members choose roles by clicking buttons)
-- Scheduled announcements or reminders
-- Logging joins/leaves/deleted messages to `mod-log`
-- Starboard, level/XP, ticket/support threads, auto-thread in a channel, polls
+Build a feature in `src/bot/features/` (see "Writing an automation" below). Popular ones, with
+proven patterns in the `discord-bot-feature` skill ("Proven patterns"):
+- Opt-in ping roles: buttons on a pinned #welcome guide so members choose what pings them
+- Scheduled announcements, events or live-call reminders (shown in each member's local time)
+- Auto-posting feeds: YouTube uploads, blog/RSS, news, GitHub releases
+- Levels/XP with milestone roles, `/rank` and `/leaderboard`
+- Native polls (`/poll`) and suggestions with voting (`/suggest`)
+- Logging joins/leaves/deleted messages to `mod-log`; starboard; ticket/support threads
 - Keyword auto-replies (needs the Message Content intent; prefer slash commands where possible)
 
 Ask for missing specifics with choices (which channel, what text, how often), confirm, build,
 `npm run check`, try it locally with `npm run dev` (ask the user to test it in Discord), stop the
 local bot, `npm run deploy`.
 
-If the feature needs to remember things across restarts (XP, ticket counters, scheduled
-items), say so: Railway containers lose files on redeploy, so it needs a database. Ask before adding one
-(it adds cost), then follow "Storing data" in the `discord-bot-feature` skill.
+If the feature needs to remember things across restarts (XP, posted feed items, ticket counters),
+say so: Railway containers lose files on redeploy, so it needs storage (SQLite on a Railway volume
+is the simple default). Ask before adding it (small extra cost), then follow "Storing data" in the
+`discord-bot-feature` skill, including asking the user to turn on daily backups.
 
 ## Writing an automation
 

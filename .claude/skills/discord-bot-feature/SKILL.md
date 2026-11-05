@@ -56,17 +56,72 @@ field to `botSchema` in `src/server/schema.ts` (with validation and a cross-refe
 
 ## Storing data
 
-There is no database by default, and files written inside the Railway container are lost on every
-redeploy. If a feature needs to remember things (points, tickets, reminders), ask the user before
-adding a database: it adds usage cost. If yes:
+There is no storage by default, and files written inside the Railway container are lost on every
+redeploy. If a feature needs to remember things (XP, ticket counters, posted feed items), ask the
+user before adding storage (it adds a little usage cost), then pick:
 
-1. In `.railway/railway.ts`: `const db = postgres("db");`, add `db` to the project's `resources`,
-   and pass `DATABASE_URL: db.env.DATABASE_URL` in the bot service's `env`.
-2. Add `DATABASE_URL` to `src/env.ts` (optional locally) and use a migration tool from the first
-   table. Migrations are checked in and never edited once applied.
-3. Never run destructive migrations, resets or deletes against the Railway database without a
-   backup and the user's explicit go-ahead for that exact command. Tell the user to turn on
-   Railway's database backups (the database's **Backups** tab) once real data exists.
+**SQLite on a Railway volume (recommended for this bot).** One instance, one writer, no extra
+service. Node's built-in `node:sqlite` (`DatabaseSync`, Release candidate in Node 26) means nothing
+to install.
+
+1. `.railway/railway.ts`: `const data = volume("bot-data");`, add `volumeMounts: { "/data": data }`
+   and `RAILWAY_RUN_UID: "0"` (the Dockerfile runs as a non-root user, which can't write to a
+   Railway volume otherwise) to the bot service's config/env, and add `data` to `resources`.
+   Import `volume` from `railway/iac`.
+2. `DATABASE_PATH` env var: `/data/bot.db` on Railway, `./data/bot.db` locally (gitignore `data/`).
+3. On open: `PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON;`.
+   One module owns every table; create tables with `CREATE TABLE IF NOT EXISTS`, and put schema
+   changes in numbered migrations tracked in a `schema_version` table, never edited once shipped.
+4. Volumes allow one replica only (already the setting) and a redeploy has a few seconds of
+   downtime. Tell the user to turn on backups: Railway → the `discord-bot` service → **Backups** tab
+   → **Daily** (kept 6 days). A backup only counts once a restore has been tried.
+
+**Postgres** if they need a database other tools can reach too: `const db = postgres("db");` in
+`.railway/railway.ts`, add `db` to `resources`, pass `DATABASE_URL: db.env.DATABASE_URL`, and use a
+migration tool from the first table.
+
+Either way: never run destructive migrations, resets or bulk deletes against the Railway data
+without a backup and the user's explicit go-ahead for that exact command.
+
+## Proven patterns (from a production community bot)
+
+Lessons from a live 24/7 community bot with feeds, levels, polls and scheduled calls. Follow them
+when building similar features:
+
+- **External feeds (RSS, YouTube, GitHub, news).** On a source's first run, save existing items as
+  already seen without posting them (no back-catalog dump), but do still post items from the last
+  48 hours. Keep a stable dedupe key per source and never rename it once live, or everything reposts.
+  Cap posts per poll (about 3), give every fetch a timeout (`AbortSignal.timeout(15_000)`), send a
+  browser-like `User-Agent` (many Cloudflare-fronted feeds return 403 without one), and on any
+  fetch/parse failure log and skip that cycle; it must never crash the bot. YouTube has a per-channel
+  feed: `https://www.youtube.com/feeds/videos.xml?channel_id=<id>`. Unit-test the filtering and
+  "should post" logic; feed bugs are silent otherwise.
+- **Pings are opt-in.** Nobody gets pinged unless they chose to: make one role per kind of ping
+  ("Event Pings", "News Pings") and give members toggle buttons on a pinned message in #welcome
+  (`customId` like `"pings:news"`; clicking adds the role, clicking again removes it, with an ephemeral
+  confirmation). When posting, mention only that role: `allowedMentions: { parse: [], roles: [id] }`.
+- **Pinned guide and rules messages.** Edit the bot's existing message instead of posting a new
+  one each time: find the bot's own pinned message in the channel (or store its ID), `edit` it, and
+  only `send` + `pin` if it's missing. Turn channel names into clickable `<#id>` links.
+- **Schedules.** Use a cron library with an explicit IANA timezone (e.g. `croner`:
+  `new Cron("0 30 9 * * THU", { timezone: "Asia/Kuala_Lumpur" }, fn)`) rather than `setInterval`
+  for "every Thursday 9:30". Put the timezone and days in `server.config.ts` `bot:` settings. In
+  messages, write times as Discord timestamps (`<t:UNIX:F>`, or `<t:UNIX:R>` for "in 15 minutes")
+  so every member sees their own local time.
+- **Levels/XP.** Give XP only in chosen channels, at most once per member per minute, random 15-25 per
+  message; members keep only their highest milestone role; announce milestones in one channel, not
+  where they chatted. Needs storage (above) and the `GuildMessages` intent; it reads only who posted
+  where, so the privileged Message Content intent isn't needed.
+- **Polls.** Discord's native polls (`poll: { question: { text }, answers, duration, allowMultiselect }`)
+  beat reaction votes. They can't be sent as a card (Components V2 disables `poll`), so send them as a
+  normal message. Limit the command with `.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)`.
+- **Suggestions.** `/suggest` posts the idea as a card in a read-only channel and adds 👍/👎
+  reactions for voting.
+- **Images in cards.** Local images (banners in `assets/`) go in `files` and are shown with
+  `attachment://<name>` in the card's `image`; attachments don't show on card messages otherwise.
+- **Read-only channels.** If the bot isn't Administrator (invited with `--minimal`), denying
+  `SendMessages` to @everyone also blocks the bot: add an overwrite for the bot's own role that
+  allows it.
 
 ## Before you finish
 
