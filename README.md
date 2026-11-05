@@ -36,33 +36,39 @@ Discord Magic is a Discord server and bot that your coding agent builds, styles 
 | "Fill out my server for a fitness community"           | Plans categories, channels, roles and colours, then builds them    |
 | "Rename #general to #lounge"                           | Renames it and keeps all its messages                        |
 | "Welcome new people and give them the Member role"     | New members get a welcome card and the role automatically    |
+| "Update the start-here guide"                          | Edits the pinned guide in #welcome, no repost                |
 | "Add MEE6 and give it the bot-log channel"             | Tells you how to invite it, then sets up its access          |
 | "Post a weekly challenge every Monday"                 | Builds the automation, tests it, deploys it                  |
 
 ## Also included
 
 - **Slash commands:** `/ping`, `/about` and `/help`, ready to copy for your own.
-- **Automations folder:** one file per automation, with welcome cards and auto-role built in.
+- **Automations folder:** one file per automation, with a pinned start-here guide, welcome cards and auto-role built in.
 - **Health check:** `npm run doctor` finds what's wrong and says how to fix it.
 - **Copy an existing server:** turn a server you already run into a config file in one command.
 
 ## Get started
 
-1. Get the project:
+1. Open your coding agent ([GG Coder](https://github.com/KenKaiii/gg-framework), Claude Code, Codex or any other) and paste:
 
-   ```bash
-   git clone https://github.com/KenKaiii/discord-magic.git
-   cd discord-magic
-   npm install
-   ```
+   > Set up Discord Magic for me: https://github.com/KenKaiii/discord-magic
 
-   You need [Node.js](https://nodejs.org) 24 or newer and a Discord account.
+   It downloads the project, installs what's missing and starts the setup. All you need is a Discord account.
 
-2. Open the folder in your coding agent ([GG Coder](https://github.com/KenKaiii/gg-framework), Claude Code, Codex or any other) and say:
+2. Follow the few steps it gives you (copy a token, click Authorize, sign in to Railway).
 
-   > Set up my Discord bot.
+3. Your agent asks what your server is for, shows you what's possible, then builds it to fit. After that, ask for anything you want. Next time, open the `discord-magic` folder in your agent and just keep asking.
 
-3. Follow the few steps it gives you. Then ask for whatever you want your server to be.
+Already downloaded it? Open the folder in your agent and say "Set up my Discord bot."
+
+### For agents
+
+If a user pasted this repo's link and asked you to set it up:
+
+1. Make sure `git` and Node.js 24+ are installed (`node -v`). If not, install them for the user: macOS `brew install node git`, Windows `winget install OpenJS.NodeJS.LTS Git.Git`, Linux the distro package manager or nvm.
+2. `git clone https://github.com/KenKaiii/discord-magic.git`, `cd discord-magic`, `npm install`.
+3. Read `AGENTS.md` and `.agents/skills/discord-magic/SKILL.md`, then follow its "First-time setup" recipe. Your skill list may not include this project's skills yet, so read the files directly.
+4. When setup is done, tell the user to open the `discord-magic` folder in their agent from now on.
 
 ## For developers
 

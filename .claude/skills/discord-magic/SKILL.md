@@ -56,7 +56,7 @@ Everything else is yours. These need the user (give them the steps above):
 | To change... | Edit | Then run |
 |---|---|---|
 | Server name, description, icon, settings, roles, categories, channels, who-sees-what | `server.config.ts` (`docs/server-config.md` lists every field) | `npm run server:plan` → explain → `npm run server:apply` |
-| Welcome card, auto-role, brand colour | `bot:` in `server.config.ts` | `npm run check`, then redeploy (`npm run deploy`) |
+| Pinned start-here guide, welcome card, auto-role, brand colour | `bot:` in `server.config.ts` | `npm run check`, then redeploy (`npm run deploy`) |
 | Automations (do X when Y happens / every N minutes) | `src/bot/features/<name>.ts` + register in `src/bot/features/index.ts` | `npm run check`, test with `npm run dev`, then `npm run deploy` |
 | Slash commands (`/something`) | `src/bot/commands/<name>.ts` + register in `src/bot/commands/index.ts` | same as above |
 | Bot message look | Use `card()` from `src/bot/ui.ts` (see Styling) | |
@@ -76,13 +76,47 @@ deep into one area.
 
 ### First-time setup / "help me get started"
 Run `npm run doctor` and work through each FAIL using the `discord-setup` skill. Ask only for the
-user-only steps above. Finish with the bot live on Railway and a quick tour: "Type /help in your
-server."
+user-only steps above. Once the bot is in their server, do "Get to know their server" (next)
+before building anything, then put it online. Finish with: "Type /help in your server."
+
+### Get to know their server (before building, and whenever you don't know what it's for)
+Every server is different, and `server.config.ts` is only a starting point. Never apply the
+starter layout as-is to a real server. Check **Project decisions** in `AGENTS.md` first; if the
+purpose is already recorded there, don't ask again.
+
+1. Ask a few quick questions (one `ask_user` call with choices, and allow typed answers, which
+   many users prefer). Recommend a default for each:
+   - **What's it for?** Community around a topic, creator/fan server, course or paid members,
+     gaming group, study/work team, support for a product.
+   - **Who's coming, and how many?** Friends (under 50), a growing community (hundreds), a big
+     audience (thousands: more moderation and structure).
+   - **The vibe:** clean and minimal, playful, professional.
+   - **Must-haves** (multi-select): welcome and a start-here guide, events or live calls, posts
+     from YouTube/blog/news, levels and ranks, support tickets, members-only areas, other bots
+     (music, games).
+2. Show what's possible in a short plain-words list, so they can pick ideas they hadn't thought
+   of. Pick 4-6 that fit their answers, not the whole menu:
+   - **Layout:** channels, categories, voice rooms, Q&A forums, private staff or members-only areas.
+   - **Roles:** colours, who can do what, staff, flair roles members choose themselves.
+   - **First impressions:** a pinned start-here guide, a welcome card for each new member, a role
+     given automatically.
+   - **Automations:** scheduled posts and event reminders in everyone's local time, auto-posting
+     YouTube/blog/news, levels and ranks, polls, suggestions, support tickets, mod logs, opt-in pings.
+   - **Other bots:** music, games, moderation (you set up their access; they click Add App).
+   - **The bot's look:** its name, picture, brand colour and the style of its messages.
+   - **Online 24/7** on Railway, updating itself whenever the project changes.
+3. Propose a tailored layout in 4-8 bullets (categories, channels, roles, what the bot does).
+   Rewrite `server.config.ts` for it: keep useful parts of the starter, drop what doesn't fit, and
+   update the guide's channel list to match. Get a yes, then plan → apply.
+4. Record the answers as one line in **Project decisions** (e.g. "Server: fitness coaching
+   community, ~200 members, clean style, must-haves: events, levels"), so later sessions build in
+   the same direction.
+5. Build automations one at a time after the layout, each confirmed first. Offer the next idea
+   at most once per reply; don't push.
 
 ### "Fill out my server" / "make it look good"
-1. Ask what the server is for (offer: community, creator/fan server, gaming group, study/work team,
-   support for a product) and the vibe (clean/minimal, playful, professional). Default:
-   community + clean.
+1. If you don't know what the server is for yet, do "Get to know their server" first. Default if
+   they'd rather you choose: community + clean.
 2. Draft a full layout in `server.config.ts`. Good defaults:
    - **Start Here**: `welcome`, `rules`, `announcements`, `roles` or `faq`
    - **Community**: `general`, `introductions`, `showcase`, `off-topic`, a `help` forum
@@ -96,11 +130,11 @@ server."
 4. Every text channel gets a one-line `topic` that tells people what goes there.
 5. Read-only info channels: `@everyone` deny `SendMessages`; staff channels hidden from
    `@everyone`.
-6. Keep #welcome for one pinned guide (what each channel is for, with clickable `<#id>` links,
-   plus opt-in ping buttons) and post join greetings somewhere else (`new-members` or
-   `introductions`), so the guide never gets buried. The starter config posts greetings in
-   #welcome; suggest this split when building out a real server. Pinned-guide pattern: "Proven
-   patterns" in `discord-bot-feature`.
+6. Keep the welcome split the starter config uses: #welcome holds only the pinned guide
+   (`bot.guide`, one line per channel with `{#channel}` links), greetings go to another channel
+   (`bot.welcome.channel`, e.g. `introductions`), and Discord's own join notices go to staff
+   (`settings.systemChannel: "mod-log"`). When channels change, update the guide's list to match.
+   Opt-in ping buttons on the guide: "Proven patterns" in `discord-bot-feature`.
 7. Set `bot.brandColor` to match the server's look and write a warm welcome card.
 8. Plan → explain in 4-6 bullets → apply → `npm run deploy` if `bot:` changed. Offer to style the
    bot itself to match (next recipe).
@@ -126,6 +160,13 @@ are kept. Plan → apply.
 ### Welcome new members
 `bot.welcome` (`channel`, `title`, `message` with `{user}`, `{server}`, `{memberCount}`,
 `{#channel}`) and `bot.autoRole`. Needs the **Server Members Intent** (user-only step). Redeploy.
+Keep greetings out of the guide's channel.
+
+### Start-here guide
+`bot.guide` (`channel`, `title`, `message` with `{server}`, `{#channel}`). On every start the bot
+edits its pinned guide in place (posts and pins it the first time), so changing the text and
+redeploying updates it with no repost. To move it, change `channel`, then unpin/delete the old one
+in Discord (or with a one-off script, after the user says yes).
 
 ### Members
 The bot doesn't manage individual members through the config. For "give everyone role X" or

@@ -1,11 +1,12 @@
 import { ApplicationFlags, GatewayIntentBits } from "discord.js";
 import type { ServerConfig } from "../../server/schema.ts";
 import { autoRole } from "./auto-role.ts";
+import { guide } from "./guide.ts";
 import type { Feature } from "./types.ts";
 import { welcome } from "./welcome.ts";
 
 /** Every automation the bot runs. Add new ones here. */
-export const features: readonly Feature[] = [welcome, autoRole];
+export const features: readonly Feature[] = [guide, welcome, autoRole];
 
 export function activeFeatures(config: ServerConfig, list = features): Feature[] {
   return list.filter((f) => f.enabled?.(config) ?? true);

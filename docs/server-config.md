@@ -124,13 +124,18 @@ Common recipes:
 | Field             | Notes                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `brandColor`      | `"#RRGGBB"` accent colour on every bot message card. Default Discord blurple.                                      |
-| `welcome.channel` | Text channel name to post the welcome card in when someone joins.                                                  |
+| `guide.channel`   | Text channel for one pinned "start here" card. The bot posts and pins it on start, then edits it in place on every later start (no reposts). |
+| `guide.title`     | Optional card heading. Placeholders: `{server}`, `{#channel-name}`.                                                |
+| `guide.message`   | Up to 3500 chars. Placeholders: `{server}`, `{#channel-name}` (clickable channel link). One line per channel works well. |
+| `welcome.channel` | Text channel name to post the welcome card in when someone joins. Use a different channel from `guide` so greetings don't bury it. |
 | `welcome.title`   | Optional card heading, same placeholders as `message`.                                                             |
 | `welcome.message` | Up to 2000 chars. Placeholders: `{user}` (mention), `{server}`, `{memberCount}`, `{#channel-name}` (channel link). |
 | `autoRole`        | Role name given to every new (non-bot) member.                                                                     |
 
-Both need the **Server Members Intent** (Developer Portal -> Bot -> Privileged Gateway Intents).
-The bot reads them at start-up, so restart/redeploy after changing them.
+`welcome` and `autoRole` need the **Server Members Intent** (Developer Portal -> Bot -> Privileged
+Gateway Intents); `guide` doesn't. The bot reads all of these at start-up, so restart/redeploy after
+changing them. The guide needs the bot to be able to post and pin in its channel (Administrator
+covers it; with `--minimal`, give the bot's role `SendMessages` there if the channel is read-only).
 
 ## Permission names
 

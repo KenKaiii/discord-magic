@@ -1,5 +1,6 @@
-// Your Discord server, as code. Edit this file, then run `npm run server:plan` to preview and
-// `npm run server:apply` to make Discord match. Full reference: docs/server-config.md
+// Your Discord server, as code. This is a starter: your agent tailors it to what your server is
+// for. Preview with `npm run server:plan`, apply with `npm run server:apply`.
+// Full reference: docs/server-config.md
 import { defineServer } from "./src/server/schema.ts";
 
 export default defineServer({
@@ -11,7 +12,8 @@ export default defineServer({
     verificationLevel: "low",
     defaultNotifications: "only_mentions",
     explicitContentFilter: "all_members",
-    systemChannel: "welcome",
+    // Discord's own join/boost notices go to staff, so #welcome stays clean.
+    systemChannel: "mod-log",
   },
 
   // What every member can do by default. Discord's defaults minus @everyone pings,
@@ -114,10 +116,26 @@ export default defineServer({
   bot: {
     // Accent colour on every bot message.
     brandColor: "#5865F2",
-    welcome: {
+    // Pinned in #welcome and kept up to date: the one message every newcomer reads first.
+    guide: {
       channel: "welcome",
+      title: "Start here",
+      message: [
+        "Welcome to **{server}**! Here's where everything is:",
+        "- {#rules}: read these first",
+        "- {#announcements}: news from the team",
+        "- {#introductions}: say hi and tell us what you're building",
+        "- {#general}: chat about anything",
+        "- {#showcase}: share what you've made",
+        "- {#help}: ask a question, one post each",
+      ].join("\n"),
+    },
+    // Greeting for each new member, kept out of #welcome so the guide never gets buried.
+    welcome: {
+      channel: "introductions",
       title: "Welcome to {server}",
-      message: "Hey {user}, glad you're here! Have a read of {#rules}, then say hi in {#general}.",
+      message:
+        "Hey {user}, glad you're here! Tell us who you are and what you're building. The tour is in {#welcome}.",
     },
     autoRole: "Member",
   },

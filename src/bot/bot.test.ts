@@ -1,11 +1,12 @@
 import type { Server } from "node:http";
-import { GatewayIntentBits, MessageFlags } from "discord.js";
+import { GatewayIntentBits, type Message, MessageFlags } from "discord.js";
 import { afterEach, describe, expect, it } from "vitest";
 import exampleConfig from "../../server.config.ts";
 import { EnvError, loadEnv } from "../env.ts";
 import { startHealthServer } from "../health.ts";
 import { parseServerConfig } from "../server/schema.ts";
 import { commands } from "./commands/index.ts";
+import { findGuide, guideCard } from "./features/guide.ts";
 import { activeFeatures, privilegedIntentsNeeded, requiredIntents } from "./features/index.ts";
 import { fillTemplate, welcomeCard } from "./features/welcome.ts";
 import { card, cardMessage, cardReply } from "./ui.ts";
@@ -130,5 +131,53 @@ describe("welcome feature", () => {
 
   it("asks for the Server Members intent when welcome/autoRole are on", () => {
     expect(privilegedIntentsNeeded(config).map((p) => p.toggle)).toEqual(["Server Members Intent"]);
+  });
+});
+
+describe("guide feature", () => {
+  it("renders the starter guide with channel links and no greeting placeholders", () => {
+    const channels = new Map([
+      ["rules", "1"],
+      ["general", "2"],
+    ]);
+    const text = JSON.stringify(guideCard(config, { serverName: "Magic", channels })?.toJSON());
+    expect(text).toContain("<#1>");
+    expect(text).toContain("Magic");
+    expect(text).not.toMatch(/\{server\}|\{#rules\}/);
+  });
+
+  it("keeps the guide and greetings in different channels in the starter config", () => {
+    expect(config.bot.guide?.channel).toBeDefined();
+    expect(config.bot.welcome?.channel).not.toBe(config.bot.guide?.channel);
+    expect(config.settings.systemChannel).not.toBe(config.bot.guide?.channel);
+  });
+
+  it("leaves {user} alone when there is no member", () => {
+    expect(fillTemplate("{user} {memberCount}", { serverName: "S", channels: new Map() })).toBe(
+      "{user} {memberCount}",
+    );
+  });
+
+  it("edits the bot's oldest pinned message instead of posting a new one", () => {
+    const msg = (id: string, author: string, at: number) =>
+      ({ id, author: { id: author }, createdTimestamp: at }) as unknown as Message;
+    const pinned = [msg("a", "someone", 1), msg("b", "bot", 3), msg("c", "bot", 2)];
+    expect(findGuide(pinned, "bot")?.id).toBe("c");
+    expect(findGuide([msg("a", "someone", 1)], "bot")).toBeUndefined();
+  });
+
+  it("needs no privileged intent", () => {
+    const onlyGuide = parseServerConfig({
+      name: "Srv",
+      channels: [{ name: "welcome" }],
+      bot: { guide: { channel: "welcome", message: "Hi" } },
+    });
+    expect(privilegedIntentsNeeded(onlyGuide)).toEqual([]);
+  });
+
+  it("rejects a guide channel that isn't in the config", () => {
+    expect(() =>
+      parseServerConfig({ name: "Srv", bot: { guide: { channel: "nope", message: "Hi" } } }),
+    ).toThrow(/nope/);
   });
 });

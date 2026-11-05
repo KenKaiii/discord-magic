@@ -64,7 +64,7 @@ docs/server-config.md     Every field in server.config.ts, with examples.
 src/index.ts              Bot entry: env, health server, Discord login.
 src/bot/client.ts         Wires commands and features to the Discord client.
 src/bot/commands/         One file per slash command; register in commands/index.ts.
-src/bot/features/         Automations (welcome, auto-role, ...); register in features/index.ts.
+src/bot/features/         Automations (start-here guide, welcome, auto-role, ...); register in features/index.ts.
 src/bot/ui.ts             card() helper: the one look for every bot message (Components V2).
 src/server/               Server-as-code engine: schema, plan (diff), apply, export, backup.
 src/discord/              Discord REST adapters.

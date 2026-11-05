@@ -10,6 +10,14 @@ browser or Discord account, give one short instruction at a time with the exact 
 
 ## 0. Where are we?
 
+If the user only pasted the repo link, you're not in the project yet: install anything missing
+(`node -v` must be 24+; macOS `brew install node git`, Windows
+`winget install OpenJS.NodeJS.LTS Git.Git`, Linux the package manager or nvm), then
+`git clone https://github.com/KenKaiii/discord-magic.git`, `cd discord-magic`, `npm install`. Your
+skill list won't have this project's skills yet, so read `AGENTS.md` and the skill files from
+`.agents/skills/` directly. When setup is done, tell the user to open the `discord-magic` folder in
+their agent from now on.
+
 ```bash
 ls .env node_modules >/dev/null 2>&1 || npm install
 npm run doctor
@@ -78,8 +86,10 @@ with history, the second for a fresh server):
 
 - **Keep the current layout**: `npm run server:export`, review `server.config.exported.ts`, then
   replace `server.config.ts` with it (keep the `bot:` section from the old file if they want the
-  welcome message/auto-role). From now on changes go through the config.
-- **Start from the starter template** in `server.config.ts`: adapt name/description first.
+  start-here guide, welcome message and auto-role, and point their channels at ones that exist). From now on changes go through the config.
+- **Build a new layout**: do "Get to know their server" in the `discord-magic` skill first (what
+  it's for, who's coming, vibe, must-haves, plus what's possible), then tailor `server.config.ts`
+  to their answers. The starter file is only a starting point; don't apply it unchanged.
 
 Then follow the `discord-server` skill (plan -> user approves -> apply).
 

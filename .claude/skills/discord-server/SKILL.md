@@ -46,6 +46,7 @@ plan, but you can apply straight after showing the plan if the user already said
 | "Reorder channels/roles"                       | Reorder them in the file.                                                                                                                          |
 | "Slow mode"                                    | `slowmode: <seconds>` (not on announcement channels).                                                                                              |
 | "Change the welcome message"                   | `bot.welcome.message`; placeholders `{user}` `{server}` `{memberCount}` `{#channel-name}`. Needs a redeploy to take effect on Railway.             |
+| "Change the start-here guide"                  | `bot.guide.message` (`{server}`, `{#channel-name}`). Redeploy; the bot edits its pinned guide in place.                                            |
 | "Give new members a role automatically"        | `bot.autoRole: "<role name>"`. Needs Server Members Intent.                                                                                        |
 | "Delete #x" / "remove role Y"                  | See Deleting below.                                                                                                                                |
 

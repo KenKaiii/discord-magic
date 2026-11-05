@@ -3,23 +3,28 @@ import type { ServerConfig } from "../../server/schema.ts";
 import { brandColor, card, cardMessage } from "../ui.ts";
 import type { Feature } from "./types.ts";
 
-export interface WelcomeVars {
-  userId: string;
+export interface TemplateVars {
   serverName: string;
-  memberCount: number;
   /** Channel name -> id, used for {#channel-name} placeholders. */
   channels: Map<string, string>;
+  userId?: string;
+  memberCount?: number;
 }
 
-export function fillTemplate(template: string, vars: WelcomeVars): string {
-  return template
-    .replaceAll("{user}", `<@${vars.userId}>`)
-    .replaceAll("{server}", vars.serverName)
-    .replaceAll("{memberCount}", String(vars.memberCount))
-    .replace(/\{#([^}]+)\}/g, (_whole, name: string) => {
-      const id = vars.channels.get(name.trim().toLowerCase());
-      return id ? `<#${id}>` : `#${name}`;
-    });
+export interface WelcomeVars extends TemplateVars {
+  userId: string;
+  memberCount: number;
+}
+
+export function fillTemplate(template: string, vars: TemplateVars): string {
+  let text = template.replaceAll("{server}", vars.serverName);
+  if (vars.userId !== undefined) text = text.replaceAll("{user}", `<@${vars.userId}>`);
+  if (vars.memberCount !== undefined)
+    text = text.replaceAll("{memberCount}", String(vars.memberCount));
+  return text.replace(/\{#([^}]+)\}/g, (_whole, name: string) => {
+    const id = vars.channels.get(name.trim().toLowerCase());
+    return id ? `<#${id}>` : `#${name}`;
+  });
 }
 
 export function welcomeCard(

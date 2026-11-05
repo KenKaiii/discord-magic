@@ -48,9 +48,16 @@ export async function fetchApplication(rest: REST): Promise<AppInfo> {
 }
 
 export const ADMIN_PERMISSIONS = 8n;
-// ManageGuild | ManageRoles | ManageChannels | ViewChannel | SendMessages | EmbedLinks | ReadMessageHistory
+// ManageGuild | ManageRoles | ManageChannels | ViewChannel | SendMessages | EmbedLinks | ReadMessageHistory | PinMessages
 export const MINIMAL_PERMISSIONS =
-  (1n << 5n) | (1n << 28n) | (1n << 4n) | (1n << 10n) | (1n << 11n) | (1n << 14n) | (1n << 16n);
+  (1n << 5n) |
+  (1n << 28n) |
+  (1n << 4n) |
+  (1n << 10n) |
+  (1n << 11n) |
+  (1n << 14n) |
+  (1n << 16n) |
+  (1n << 51n);
 
 export function inviteUrl(
   applicationId: string,

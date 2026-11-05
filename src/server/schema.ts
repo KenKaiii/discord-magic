@@ -104,6 +104,14 @@ const botSchema = z.strictObject({
       message: z.string().min(1).max(2000),
     })
     .optional(),
+  /** One pinned "start here" card the bot keeps up to date in a channel. Placeholders: {server} {#channel}. */
+  guide: z
+    .strictObject({
+      channel: z.string().min(1),
+      title: z.string().min(1).max(256).optional(),
+      message: z.string().min(1).max(3500),
+    })
+    .optional(),
   /** Role given to every new member. Needs the Server Members intent. */
   autoRole: z.string().min(1).optional(),
 });
@@ -200,6 +208,7 @@ export const serverSchema = z
     checkChannelRef(server.settings.rulesChannel, "text", ["settings", "rulesChannel"]);
     checkChannelRef(server.settings.afkChannel, "voice", ["settings", "afkChannel"]);
     checkChannelRef(server.bot.welcome?.channel, "text", ["bot", "welcome", "channel"]);
+    checkChannelRef(server.bot.guide?.channel, "text", ["bot", "guide", "channel"]);
     if (server.bot.autoRole && !roleNames.has(server.bot.autoRole))
       issue(`Unknown role "${server.bot.autoRole}"`, ["bot", "autoRole"]);
   });
