@@ -38,7 +38,8 @@ Everything else is yours. These need the user (give them the steps above):
 
 | Thing | Steps to give |
 |---|---|
-| Create the Discord application / get the token | https://discord.com/developers/applications → **New Application** → **Bot** → **Reset Token** → copy. Ask them to paste it to you or into `.env`. |
+| Get the bot token and server ID | Ask for both in one message (`discord-setup` steps 1-2), they paste them back to you, you write `.env`. |
+| Get an API key or secret for a feature (YouTube, OpenAI, Stripe...) | Tell them exactly where (link + clicks) and to paste it back to you. You add it to `.env.example` (with that where-to-get-it note) and `.env`, then `npm run deploy` puts it on Railway. |
 | Turn on a privileged intent | https://discord.com/developers/applications/<app id>/bot → **Privileged Gateway Intents** → toggle → **Save Changes**. `npm run doctor` prints the exact link and toggle name. |
 | Get the server ID | Discord **User Settings → Advanced → Developer Mode** on; right-click the server icon → **Copy Server ID**. |
 | Invite this bot | Run `npm run invite` and give them the link → they pick nothing and click **Authorize**. |
@@ -286,7 +287,10 @@ Style rules:
 - `npm run check` after code changes; fix everything it reports.
 - Never delete channels/roles, kick/ban, or bulk-change members without the user approving the exact
   list. Deleted channels lose their messages forever.
-- Never print, log or commit the bot token. `.env` is the only place it lives locally.
+- Never print, log or commit the bot token or any key. `.env` is the only place they live locally.
+- Ask for values in one go: when a request needs things only the user can get (a token, API key,
+  channel link), list them all with where to get each, and let them paste everything back at once.
+  You set them locally and on Railway; the user never edits `.env` or the Railway dashboard.
 - Two running copies of the bot answer everything twice: stop `npm run dev` before `npm run deploy`.
 - Keep the docs true: if you add a config field, command or feature, update
   `docs/server-config.md`, `AGENTS.md` and this skill's tables if they change. (`/help` lists

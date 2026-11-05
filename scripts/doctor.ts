@@ -10,7 +10,13 @@ import { hasBits, missingPermissions, toBits } from "../src/server/permissions.t
 import { buildPlan, countOps } from "../src/server/plan.ts";
 import { parseServerConfig, type ServerConfig } from "../src/server/schema.ts";
 import { fetchApplication, inviteUrl, main, ROOT } from "./_shared.ts";
-import { isSupportedCliVersion, MIN_RAILWAY_CLI, readLinks } from "./railway-deploy.ts";
+import {
+  isSupportedCliVersion,
+  MIN_RAILWAY_CLI,
+  readLinks,
+  serviceName,
+} from "./railway-deploy.ts";
+import { missingVariables, readVariables } from "./variables.ts";
 
 let failures = 0;
 const ok = (msg: string) => console.log(`  ok   ${msg}`);
@@ -32,10 +38,15 @@ main(async () => {
     return 1;
   }
 
+  const variables = readVariables();
+  const missing = missingVariables(variables);
+  for (const v of missing) fail(`${v.key} is empty in .env`, v.help || "see .env.example");
+  if (missing.length > 0) return 1;
+
   let env: ReturnType<typeof loadEnv>;
   try {
     env = loadEnv();
-    ok("DISCORD_TOKEN and DISCORD_GUILD_ID are set");
+    ok(`.env has every variable the bot needs (${variables.map((v) => v.key).join(", ")})`);
   } catch (err) {
     fail("Environment", err instanceof Error ? err.message : String(err));
     return 1;
@@ -136,8 +147,19 @@ main(async () => {
       status.status === 0 ? (JSON.parse(status.stdout || "{}") as { id?: string }).id : undefined;
     const link = projectId ? readLinks()[projectId] : undefined;
     if (!projectId) warn("No Railway project linked yet: `npm run deploy` creates one");
-    else if (link) ok(`Railway auto-deploys from GitHub ${link.repo} (${link.branch})`);
-    else warn("Railway deploys by upload; `npm run deploy -- --github` turns on auto-deploys");
+    else {
+      // Only the names are used; values stay in memory and are never printed.
+      const listed = run(["variable", "list", "--service", serviceName(), "--json"]);
+      if (listed.status === 0) {
+        const onRailway = new Set(Object.keys(JSON.parse(listed.stdout || "{}") as object));
+        const absent = variables.filter((v) => !onRailway.has(v.key)).map((v) => v.key);
+        if (absent.length > 0)
+          warn(`Railway is missing ${absent.join(", ")}: \`npm run deploy\` copies them from .env`);
+        else ok("Railway has every variable from .env.example");
+      }
+      if (link) ok(`Railway auto-deploys from GitHub ${link.repo} (${link.branch})`);
+      else warn("Railway deploys by upload; `npm run deploy -- --github` turns on auto-deploys");
+    }
   }
 
   console.log(failures === 0 ? "\nAll good." : `\n${failures} problem(s) to fix.`);

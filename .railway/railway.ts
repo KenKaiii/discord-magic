@@ -1,7 +1,8 @@
 // Railway Infrastructure as Code: `railway config plan` previews, `railway config apply` applies.
-// `npm run deploy` runs the whole flow. Secrets are set from .env and kept with preserve().
+// `npm run deploy` runs the whole flow. Variables are set from .env and kept with preserve().
 import { readFileSync } from "node:fs";
 import { defineRailway, github, preserve, project, service } from "railway/iac";
+import { readVariables } from "../scripts/variables.ts";
 
 // Railway project ID -> GitHub repo it auto-deploys from. Written by `npm run deploy -- --github`.
 // Keyed by project so a clone of this repo never deploys someone else's GitHub repo.
@@ -30,8 +31,8 @@ export default defineRailway((ctx) => {
     env: {
       NODE_ENV: "production",
       LOG_LEVEL: "info",
-      DISCORD_TOKEN: preserve(),
-      DISCORD_GUILD_ID: preserve(),
+      // Everything required in .env.example; `npm run deploy` sets the values.
+      ...Object.fromEntries(readVariables().map((v) => [v.key, preserve()])),
     },
   });
 

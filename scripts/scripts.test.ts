@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { inviteUrl, ROOT } from "./_shared.ts";
 import { isSupportedCliVersion, parseGitHubRepo, railwayEnv, readLinks } from "./railway-deploy.ts";
 import { MIRRORS, SOURCE } from "./sync-skills.ts";
+import { missingVariables, parseVariables, readVariables } from "./variables.ts";
 
 describe("inviteUrl", () => {
   it("locks the invite to the configured server", () => {
@@ -66,5 +67,26 @@ describe("railway deploy helpers", () => {
       expect(link.branch.length).toBeGreaterThan(0);
     }
     expect(readLinks("/nonexistent/github.json")).toEqual({});
+  });
+});
+
+describe("variables (.env.example)", () => {
+  it("lists required keys with the comment that says where to get them", () => {
+    const specs = parseVariables(
+      "# Header\n\n# Token: open the portal\n# then copy it\nTOKEN=\n\n# Optional\n# PORT=3000\nAPI_KEY=abc\n",
+    );
+    expect(specs).toEqual([
+      { key: "TOKEN", help: "Token: open the portal then copy it" },
+      { key: "API_KEY", help: "Optional PORT=3000" },
+    ]);
+    expect(missingVariables(specs, { TOKEN: "x", API_KEY: "  " }).map((v) => v.key)).toEqual([
+      "API_KEY",
+    ]);
+  });
+
+  it("covers the Discord variables, each with a where-to-get-it note, and keeps local-only ones out", () => {
+    const specs = readVariables();
+    expect(specs.map((v) => v.key)).toEqual(["DISCORD_TOKEN", "DISCORD_GUILD_ID"]);
+    for (const v of specs) expect(v.help, v.key).toMatch(/\S{10,}/);
   });
 });

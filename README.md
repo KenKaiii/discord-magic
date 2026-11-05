@@ -81,7 +81,7 @@ Everything an agent needs is written down, so you can read it too:
 Doing it by hand:
 
 ```bash
-cp .env.example .env     # add DISCORD_TOKEN and DISCORD_GUILD_ID
+cp .env.example .env     # fill in every empty KEY=; the comments say where to get each
 npm run invite           # add the bot to your server
 npm run doctor           # fix anything marked FAIL
 npm run server:plan      # preview the server

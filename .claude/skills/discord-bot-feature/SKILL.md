@@ -68,7 +68,9 @@ to install.
    and `RAILWAY_RUN_UID: "0"` (the Dockerfile runs as a non-root user, which can't write to a
    Railway volume otherwise) to the bot service's config/env, and add `data` to `resources`.
    Import `volume` from `railway/iac`.
-2. `DATABASE_PATH` env var: `/data/bot.db` on Railway, `./data/bot.db` locally (gitignore `data/`).
+2. `DATABASE_PATH`: set `"/data/bot.db"` in the service `env` in `.railway/railway.ts` and default
+   to `./data/bot.db` in code (gitignore `data/`). Keep it commented out in `.env.example`, since
+   uncommented keys are copied from `.env` to Railway.
 3. On open: `PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON;`.
    One module owns every table; create tables with `CREATE TABLE IF NOT EXISTS`, and put schema
    changes in numbered migrations tracked in a `schema_version` table, never edited once shipped.
@@ -133,6 +135,10 @@ when building similar features:
 ## Before you finish
 
 - `npm run check` passes.
-- New env vars: add to `src/env.ts`, `.env.example` and `.railway/railway.ts` (`preserve()` for
-  secrets), and tell the user to add the value to `.env`.
+- New secret (API key, webhook URL, token): add `KEY=` to `.env.example` with a comment above it
+  saying exactly where to get it (link + clicks). That alone makes doctor check it, `npm run deploy`
+  copy it to Railway, and `.railway/railway.ts` keep it. Validate it in `src/env.ts` if the code
+  reads it. Ask the user for the value with those steps, write it into `.env` yourself, then deploy.
+  Non-secret settings (channel names, schedules, a YouTube channel ID) go in `server.config.ts`
+  `bot:` instead. Optional or local-only values stay commented out (`# KEY=default`).
 - Update `AGENTS.md` / this skill if you changed a convention.

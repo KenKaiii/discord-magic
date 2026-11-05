@@ -27,35 +27,39 @@ npm run doctor
 the first FAIL. If everything is `ok`, setup is done; go to step 6 or 7. `warn` lines about
 Railway mean step 7 isn't finished yet.
 
-## 1. Discord application and token (user does this in the browser)
+## 1-2. Get every value in one go (user does this in the browser)
 
-1. Open https://discord.com/developers/applications -> **New Application** -> name it (this is the
-   bot's name) -> Create.
-2. Left menu **Bot** -> **Reset Token** -> copy it.
-3. Same page, **Privileged Gateway Intents** -> turn on **Server Members Intent** ->
-   **Save Changes**. (Needed because `server.config.ts` uses `bot.welcome` / `bot.autoRole`.)
+`.env.example` lists every variable the bot needs, each with a comment saying where to get it. Ask
+for all the empty ones in **one message**, as numbered steps, and have the user paste the values
+straight back to you. For a fresh clone that's the token and the server ID:
 
-Ask the user to paste the token into `.env` themselves if they're comfortable; otherwise they can
-paste it to you. Either way it must end up only in `.env`:
+> I need 2 things from you. Paste both back here when you have them:
+>
+> **1. Your bot token**
+> 1. Open https://discord.com/developers/applications and click **New Application**. The name is
+>    your bot's name. Click **Create**.
+> 2. Left menu **Bot** → **Reset Token** → **Copy**.
+> 3. Same page, under **Privileged Gateway Intents**, turn on **Server Members Intent** →
+>    **Save Changes**.
+>
+> **2. Your server ID**
+> 1. No server yet? Click **+** at the bottom of your server list → **Create My Own**.
+> 2. **User Settings** (cog, bottom-left) → **Advanced** → turn on **Developer Mode**. On mobile:
+>    your avatar → cog → **Advanced** → **Developer Mode**.
+> 3. Right-click your server's icon → **Copy Server ID** (mobile: tap the server name →
+>    **Copy Server ID**).
+
+When they paste them:
 
 ```bash
 test -f .env || cp .env.example .env
 ```
 
-Then set `DISCORD_TOKEN=` in `.env` with a file edit. Never echo the token, put it in a shell
-command, or repeat it back.
-
-## 2. Server ID
-
-The user needs a Discord server they own or administer (a new empty one is ideal for a first try:
-the **+** (Add a Server) button at the bottom of the server list -> **Create My Own**).
-
-- Desktop: cog icon bottom-left (**User Settings**) -> **Advanced** -> turn on **Developer Mode**.
-  Then right-click the server icon -> **Copy Server ID**.
-- Mobile: avatar bottom-right -> cog top-right -> **Advanced** -> **Developer Mode**. Then tap the
-  server name -> **Copy Server ID**.
-
-Put it in `.env` as `DISCORD_GUILD_ID=`.
+Then put each value in `.env` with a file edit (`DISCORD_TOKEN=`, `DISCORD_GUILD_ID=`). Never echo
+a value, put it in a shell command, or repeat it back; just confirm "Got both, saved." If they
+only send one, ask for the other. `npm run doctor` names anything still missing, with the same
+where-to-get-it note. Railway gets the same values later from `npm run deploy`, so they never
+type them in twice.
 
 ## 3. Invite the bot
 
@@ -139,8 +143,8 @@ link and code it prints.
 npm run deploy
 ```
 
-This creates or reuses the Railway project and the `discord-bot` service, copies
-`DISCORD_TOKEN`/`DISCORD_GUILD_ID` from `.env` into Railway (never printed), applies
+This creates or reuses the Railway project and the `discord-bot` service, copies every variable
+listed in `.env.example` from `.env` into Railway (values never printed), applies
 `.railway/railway.ts` (Dockerfile build, `/health` check, single replica) and uploads this folder.
 If they have several Railway workspaces, `railway list --json` shows them; ask which one, then run
 `RAILWAY_WORKSPACE=<name> npm run deploy`. `RAILWAY_PROJECT_NAME` overrides the project name.
@@ -188,15 +192,15 @@ auto-deploys from GitHub. Then ask the user to try `/ping` in Discord.
 | --- | --- |
 | Server layout (`server.config.ts` roles/channels/settings) | `npm run server:apply`; instant, no deploy. |
 | Code, commands, features, `bot:` settings | Linked to GitHub: commit and `git push` (after the user OKs it); Railway deploys once CI passes. Not linked: `npm run deploy`. |
-| Token or server ID changed in `.env` | `npm run deploy` (copies secrets, then redeploys). |
+| A value in `.env` added or changed (new token, API key) | `npm run deploy` (copies every variable, then redeploys). `npm run doctor` warns when Railway is missing one. |
 | Hosting settings (`.railway/railway.ts`) | `npm run deploy`. |
 
 Stop any local `npm run dev` before shipping, or two bots answer every command.
 
 If `railway config apply` reports it would delete something, stop and show the user; never add
 `--confirm-destructive`. A resource added in the Railway dashboard must also be added to
-`.railway/railway.ts` (and new secret variables listed there with `preserve()`), or the next apply
-will try to remove it.
+`.railway/railway.ts`, or the next apply will try to remove it. Variables don't need that: every
+`.env.example` key is kept automatically, so add new ones there, not in the dashboard.
 
 ## Moving an existing Railway bot off railway.json / railway.toml
 

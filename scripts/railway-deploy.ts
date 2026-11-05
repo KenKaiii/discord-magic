@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { loadEnv } from "../src/env.ts";
 import { main, ROOT } from "./_shared.ts";
+import { missingVariables, readVariables } from "./variables.ts";
 
-const SECRETS = ["DISCORD_TOKEN", "DISCORD_GUILD_ID"] as const;
 /** First CLI release that runs `.railway/railway.ts` (older ones use a retired engine). */
 export const MIN_RAILWAY_CLI = "5.42.1";
 const LINKS_FILE = join(ROOT, ".railway", "github.json");
@@ -66,7 +66,7 @@ function step(title: string) {
   console.log(`\n==> ${title}`);
 }
 
-function serviceName(): string {
+export function serviceName(): string {
   const source = readFileSync(join(ROOT, ".railway", "railway.ts"), "utf8");
   const match = source.match(/service\(\s*"([^"]+)"/);
   if (!match?.[1]) throw new Error('Couldn\'t find service("...") in .railway/railway.ts');
@@ -149,7 +149,14 @@ async function deploy(): Promise<number> {
   }
   console.log(version.stdout.trim());
 
-  const env = loadEnv();
+  loadEnv();
+  const variables = readVariables();
+  const missing = missingVariables(variables);
+  if (missing.length > 0) {
+    for (const v of missing) console.error(`${v.key} is empty in .env. ${v.help}`);
+    console.error("Fill these in (see .env.example), then run this again.");
+    return 1;
+  }
   const service = serviceName();
 
   step("Railway project");
@@ -172,11 +179,11 @@ async function deploy(): Promise<number> {
     if (railway(["add", "--service", service], { stdio: "inherit" }).status !== 0) return 1;
   } else console.log("Already exists.");
 
-  step("Secrets (from your local .env, never printed)");
-  for (const key of SECRETS) {
+  step("Variables (from your local .env, values never printed)");
+  for (const { key } of variables) {
     const result = railway(
       ["variable", "set", key, "--stdin", "--service", service, "--skip-deploys"],
-      { input: env[key], stdio: ["pipe", "ignore", "pipe"] },
+      { input: process.env[key], stdio: ["pipe", "ignore", "pipe"] },
     );
     if (result.status !== 0) {
       console.error(`Failed to set ${key}.`);

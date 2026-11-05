@@ -18,9 +18,11 @@ can do, recipes and message styling. The others go deeper:
 
 ## Safety rules (always)
 
-1. **Secrets.** `DISCORD_TOKEN` lives only in `.env` (gitignored) and in Railway variables. Never
-   print it, echo it, log it, commit it, or put it in a command line. If the user pastes a token
-   in chat, write it into `.env` and tell them to reset it later if the chat is shared.
+1. **Secrets and variables.** Tokens and keys live only in `.env` (gitignored) and in Railway
+   variables. Never print, echo, log or commit them, or put them in a command line. The user
+   pastes values to you; you write them into `.env` with a file edit, and `npm run deploy` copies
+   every variable listed in `.env.example` to Railway. Never send the user to the Railway
+   dashboard to set variables. If they paste a secret in a shared chat, suggest resetting it later.
 2. **Preview before changing Discord.** Run `npm run server:plan`, summarise the plan for the user
    in plain words, and get a yes before `npm run server:apply`. Apply re-checks and backs up first.
 3. **Deleting is opt-in and exact.** Never pass `--prune` or `--confirm-delete` unless the user
@@ -49,7 +51,7 @@ can do, recipes and message styling. The others go deeper:
 | `npm run server:export`   | Writes the live server as `server.config.exported.ts` (to adopt an existing server). `-- --from backups/<file>.json` exports a backup instead. |
 | `npm run dev`             | Runs the bot locally, restarting on file changes.                                                                                              |
 | `npm run commands:deploy` | Registers slash commands without starting the bot (the bot also does this on start).                                                           |
-| `npm run deploy`          | Creates/updates the Railway project, syncs secrets and settings, deploys. `-- --github` links the GitHub repo so every push deploys after CI. |
+| `npm run deploy`          | Creates/updates the Railway project, copies every `.env.example` variable from `.env` to Railway, applies settings, deploys. `-- --github` links the GitHub repo so every push deploys after CI. |
 | `npm run logs` | Streams the deployed bot's Railway logs. |
 | `npm run check`           | Typecheck + lint + tests.                                                                                                                      |
 | `npm run skills:sync`     | Copies `.agents/skills` to the other agent folders after editing a skill.                                                                      |
