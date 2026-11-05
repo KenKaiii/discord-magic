@@ -42,9 +42,9 @@ Everything else is yours. These need the user (give them the steps above):
 | Turn on a privileged intent | https://discord.com/developers/applications/<app id>/bot → **Privileged Gateway Intents** → toggle → **Save Changes**. `npm run doctor` prints the exact link and toggle name. |
 | Get the server ID | Discord **User Settings → Advanced → Developer Mode** on; right-click the server icon → **Copy Server ID**. |
 | Invite this bot | Run `npm run invite` and give them the link → they pick nothing and click **Authorize**. |
-| Invite another bot (MEE6, Carl-bot, etc.) | Give them that bot's official site; they click **Add to Discord**, choose the server, **Authorize**. Then you add it to `otherBots`. |
+| Invite another bot (MEE6, Carl-bot, etc.) | In Discord (desktop or browser): **server name → Server Settings → App Directory** → search the bot → **Add App** → pick the server → **Authorize**. Or use the invite button on the bot's official site. Needs **Manage Server**. Then you add it to `otherBots`. |
 | Move the bot's role above others | **Server Settings → Roles** → drag the bot's role to the top. |
-| Turn on Community (needed for announcement/stage channels, rules channel, server discovery) | **Server Settings → Enable Community → Get Started**, follow the 3 screens. |
+| Turn on Community (needed for announcement/stage channels, the rules channel, onboarding, discovery) | **server name → Server Settings → Enable Community → Get Started**, follow the steps, then **Finish Setup**. Discord requires: verification level at least "low" (verified email), explicit content filter on all members, a rules channel and a community-updates channel. The starter config already sets the first two; pick #rules and #mod-log in the wizard. |
 | Log in to Railway | You run `railway login`; they approve in the browser that opens. |
 | Pay for Railway / pick a workspace | Their call; ask before the first deploy. |
 | Upload a server icon/banner image | Ask them to drop the image file into the project (e.g. `assets/icon.png`); you wire it up. |
@@ -129,9 +129,8 @@ Ask for missing specifics with choices (which channel, what text, how often), co
 local bot, `npm run deploy`.
 
 If the feature needs to remember things across restarts (XP, ticket counters, scheduled
-items), say so: Railway containers lose files on redeploy, so it needs a database (add a Railway
-Postgres in `.railway/railway.ts`) and the `durable` approach to migrations/backups. Ask before
-adding one; it adds cost.
+items), say so: Railway containers lose files on redeploy, so it needs a database. Ask before adding one
+(it adds cost), then follow "Storing data" in the `discord-bot-feature` skill.
 
 ## Writing an automation
 
@@ -209,8 +208,8 @@ Style rules:
 - **Private feedback** ("Done", errors, settings) uses ephemeral replies so the channel stays clean.
 - Never ping `@everyone`/roles from bot messages unless the user asked; `cardMessage` only pings the
   users you pass it.
-- Limits: 40 components per message; text and buttons only live inside components when using
-  cards (no `content`/`embeds` on the same message).
+- Limits: 40 components per message (every text block, separator and button counts). Card
+  messages can't also carry `content` or `embeds`, and button labels max out at 80 characters.
 
 ## Always
 
@@ -219,5 +218,6 @@ Style rules:
   list. Deleted channels lose their messages forever.
 - Never print, log or commit the bot token. `.env` is the only place it lives locally.
 - Two running copies of the bot answer everything twice: stop `npm run dev` before `npm run deploy`.
-- Keep the docs true: if you add a config field, command or feature, update `docs/server-config.md`,
-  `/help` text, and this skill's tables if they change.
+- Keep the docs true: if you add a config field, command or feature, update
+  `docs/server-config.md`, `AGENTS.md` and this skill's tables if they change. (`/help` lists
+  commands automatically from `src/bot/commands/index.ts`.)

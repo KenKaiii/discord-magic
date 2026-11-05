@@ -88,7 +88,7 @@ These roles are never edited or reordered. Invite the bot first; the plan errors
 | Field         | Default         | Applies to                | Notes                                                         |
 | ------------- | --------------- | ------------------------- | ------------------------------------------------------------- |
 | `name`        | required        | all                       | Unique within its category.                                   |
-| `type`        | `"text"`        |                           | `"text"`, `"voice"`, `"forum"`, `"announcement"`_, `"stage"`_ |
+| `type`        | `"text"`        |                           | `"text"`, `"voice"`, `"forum"`, `"announcement"`\*, `"stage"`\* |
 | `topic`       | `""`            | text, announcement, forum | For forums this is the post guidelines.                       |
 | `nsfw`        | `false`         | all                       | Age-restricted.                                               |
 | `slowmode`    | `0`             | all but announcement      | Seconds between messages per member (max 21600).              |

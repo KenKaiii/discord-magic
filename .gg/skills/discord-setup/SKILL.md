@@ -23,8 +23,8 @@ the first FAIL. If everything is `ok`, setup is done; go to step 6 or 7.
 1. Open https://discord.com/developers/applications -> **New Application** -> name it (this is the
    bot's name) -> Create.
 2. Left menu **Bot** -> **Reset Token** -> copy it.
-3. Same page, **Privileged Gateway Intents** -> turn on **Server Members Intent** -> Save.
-   (Needed because `server.config.ts` uses `bot.welcome` / `bot.autoRole`.)
+3. Same page, **Privileged Gateway Intents** -> turn on **Server Members Intent** ->
+   **Save Changes**. (Needed because `server.config.ts` uses `bot.welcome` / `bot.autoRole`.)
 
 Ask the user to paste the token into `.env` themselves if they're comfortable; otherwise they can
 paste it to you. Either way it must end up only in `.env`:
@@ -39,10 +39,14 @@ command, or repeat it back.
 ## 2. Server ID
 
 The user needs a Discord server they own or administer (a new empty one is ideal for a first try:
-Discord app -> **+** -> Create My Own).
+the **+** (Add a Server) button at the bottom of the server list -> **Create My Own**).
 
-Discord -> User Settings -> Advanced -> **Developer Mode** on. Right-click the server icon ->
-**Copy Server ID**. Put it in `.env` as `DISCORD_GUILD_ID=`.
+- Desktop: cog icon bottom-left (**User Settings**) -> **Advanced** -> turn on **Developer Mode**.
+  Then right-click the server icon -> **Copy Server ID**.
+- Mobile: avatar bottom-right -> cog top-right -> **Advanced** -> **Developer Mode**. Then tap the
+  server name -> **Copy Server ID**.
+
+Put it in `.env` as `DISCORD_GUILD_ID=`.
 
 ## 3. Invite the bot
 
@@ -90,11 +94,14 @@ will answer every command.
 
 ## 7. Deploy to Railway (online 24/7)
 
-Confirm first: Railway is a paid service after its free trial (see https://railway.com/pricing).
+Confirm first that they're OK with Railway's pricing (https://railway.com/pricing). As of Nov
+2026: a 30-day Free Trial with $5 credit, then the Free plan ($1/month of usage) or Hobby ($5/month
+including $5 of usage). A small bot like this one normally fits in Hobby's included usage.
 Then:
 
-1. Railway CLI installed? `railway --version`. If not: `brew install railway` (macOS) or
-   `npm i -g @railway/cli`.
+1. Railway CLI installed? `railway --version`. If not, pick one: `brew install railway` (macOS),
+   `npm i -g @railway/cli` (any OS), or `bash <(curl -fsSL railway.com/install.sh)`
+   (macOS/Linux/WSL). Version 5.42.1 or newer is needed for `.railway/railway.ts`.
 2. Logged in? `railway whoami`. If not, run `railway login` (opens their browser).
 3. Deploy:
 
@@ -115,7 +122,12 @@ effect immediately and don't need a deploy, but the bot reads `bot.welcome`/`bot
 start-up, so redeploy after changing those.
 
 **Auto-deploy from GitHub (optional):** push the repo to GitHub, then in the Railway dashboard:
-service -> Settings -> Source -> Connect Repo. Every push to the default branch redeploys.
+click the `discord-bot` service -> **Settings** tab -> **Service Source** -> **Connect Repo** and
+pick the repo (Railway asks them to install its GitHub app the first time). Every push to the
+connected branch then redeploys; turn on **Wait for CI** in the same settings so a failing GitHub
+check doesn't ship. Afterwards run `railway config plan`: if it wants to change the source, add
+`source: github("<owner>/<repo>")` (imported from `railway/iac`) to the service in
+`.railway/railway.ts` so the two agree.
 
 If `railway config apply` reports it would delete something, stop and show the user; do not add
 `--confirm-destructive`. A resource added in the dashboard must be added to `.railway/railway.ts`
@@ -126,7 +138,7 @@ If `railway config apply` reports it would delete something, stop and show the u
 | Symptom                             | Fix                                                                                           |
 | ----------------------------------- | --------------------------------------------------------------------------------------------- |
 | `Discord rejected DISCORD_TOKEN`    | Reset the token (step 1), update `.env` and redeploy (`npm run deploy` re-copies it).         |
-| `refused the Server Members intent` | Step 1.3, then restart/redeploy.                                                              |
+| `Discord refused a privileged intent` | `npm run doctor` names the toggle; switch it on (step 1.3), then restart/redeploy. |
 | Slash commands don't show           | Wait a few seconds, restart Discord (Ctrl/Cmd+R). Check logs for `Slash commands registered`. |
 | `Missing Permissions` on apply      | Bot role not at the top, or bot invited with `--minimal`. Run `npm run doctor`.               |
 | Commands answer twice               | Two bots are running (local `npm run dev` and Railway). Stop one.                             |

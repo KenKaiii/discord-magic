@@ -15,7 +15,7 @@ This is the code reference.
    etc.). `execute(interaction, ctx)` gets `ctx.config` (parsed `server.config.ts`), `ctx.logger`
    and `ctx.commands`.
 2. Add it to the array in `src/bot/commands/index.ts`.
-3. Reply within 3 seconds, or call `await interaction.deferReply()` first and
+3. Reply within 3 seconds (Discord's hard limit), or call `await interaction.deferReply()` first and
    `interaction.editReply(...)` later. Reply with `interaction.reply(cardReply(card({...})))`
    from `src/bot/ui.ts`; pass `{ ephemeral: true }` for private replies.
 4. Staff-only: `.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)` on the builder.
@@ -39,10 +39,11 @@ Each event needs its gateway intent in the feature's `intents`:
 | Messages in the server | `GuildMessages`         | No, but reading message text needs `MessageContent`: Yes |
 | Reactions              | `GuildMessageReactions` | No                                                       |
 | Voice joins/leaves     | `GuildVoiceStates`      | No                                                       |
+| Online status/activity | `GuildPresences`        | Yes: Presence Intent                                     |
 
 When a feature needs a privileged intent, tell the user exactly which toggle to turn on (doctor
-prints the link). If you use a privileged intent not in `PRIVILEGED` in
-`src/bot/features/index.ts`, add it there.
+prints the link). The three privileged intents (Server Members, Presence, Message Content) are
+listed in `PRIVILEGED_INTENTS` in `src/bot/features/index.ts`, which drives that check.
 
 Only act in the configured server: compare `guild.id` with `ctx.guildId`.
 
@@ -55,11 +56,17 @@ field to `botSchema` in `src/server/schema.ts` (with validation and a cross-refe
 
 ## Storing data
 
-There is no database by default. If a feature needs to remember things (points, tickets,
-reminders), ask the user before adding one: Railway Postgres costs extra. If yes, add
-`postgres("postgres")` to `.railway/railway.ts` and pass `DATABASE_URL: db.env.DATABASE_URL` to
-the service, use a migration tool from the first table, and never run destructive migrations
-against the Railway database without the user's explicit approval and a backup.
+There is no database by default, and files written inside the Railway container are lost on every
+redeploy. If a feature needs to remember things (points, tickets, reminders), ask the user before
+adding a database: it adds usage cost. If yes:
+
+1. In `.railway/railway.ts`: `const db = postgres("db");`, add `db` to the project's `resources`,
+   and pass `DATABASE_URL: db.env.DATABASE_URL` in the bot service's `env`.
+2. Add `DATABASE_URL` to `src/env.ts` (optional locally) and use a migration tool from the first
+   table. Migrations are checked in and never edited once applied.
+3. Never run destructive migrations, resets or deletes against the Railway database without a
+   backup and the user's explicit go-ahead for that exact command. Tell the user to turn on
+   Railway's database backups (the database's **Backups** tab) once real data exists.
 
 ## Before you finish
 
