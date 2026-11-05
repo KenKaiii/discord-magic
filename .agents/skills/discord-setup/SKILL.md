@@ -16,7 +16,8 @@ npm run doctor
 ```
 
 `doctor` prints `ok` / `warn` / `FAIL` lines, each FAIL with its fix. Jump to the step that fixes
-the first FAIL. If everything is `ok`, setup is done; go to step 6 or 7.
+the first FAIL. If everything is `ok`, setup is done; go to step 6 or 7. `warn` lines about
+Railway mean step 7 isn't finished yet.
 
 ## 1. Discord application and token (user does this in the browser)
 
@@ -92,46 +93,100 @@ Run it in the background, wait for `Connected to Discord` and `Slash commands re
 ask the user to type `/ping` in their server. Stop the dev bot before deploying, or two copies
 will answer every command.
 
-## 7. Deploy to Railway (online 24/7)
+## 7. Put it online with Railway (24/7)
 
-Confirm first that they're OK with Railway's pricing (https://railway.com/pricing). As of Nov
-2026: a 30-day Free Trial with $5 credit, then the Free plan ($1/month of usage) or Hobby ($5/month
-including $5 of usage). A small bot like this one normally fits in Hobby's included usage.
-Then:
+You do the heavy lifting. The user only signs in to Railway (and GitHub, for auto-deploys) and
+clicks approve in their browser. Work through these in order and skip any that are already done.
 
-1. Railway CLI installed? `railway --version`. If not, pick one: `brew install railway` (macOS),
-   `npm i -g @railway/cli` (any OS), or `bash <(curl -fsSL railway.com/install.sh)`
-   (macOS/Linux/WSL). Version 5.42.1 or newer is needed for `.railway/railway.ts`.
-2. Logged in? `railway whoami`. If not, run `railway login` (opens their browser).
-3. Deploy:
+**a. Cost check (ask once).** Railway pricing as of Nov 2026 (https://railway.com/pricing): a
+30-day Free Trial with $5 of credit (no card), then the Free plan ($1/month of usage) or Hobby
+($5/month including $5 of usage). A small bot like this normally fits in Hobby's included usage.
+Ask with choices; recommend continuing.
+
+**b. Railway CLI (you install it).** Check `railway --version`.
+- Missing: install it yourself with `npm i -g @railway/cli` (works on macOS, Windows and Linux;
+  Node is already installed). If npm's global install fails with a permissions error, use
+  `brew install railway` on macOS or `bash <(curl -fsSL railway.com/install.sh)` on macOS/Linux/WSL.
+- Older than 5.42.1 (needed for `.railway/railway.ts`): `railway upgrade --yes`.
+- Tell the user in one line what you installed. Don't ask them to run it.
+
+**c. Sign in (the user approves).** Check `railway whoami`. If not signed in, run `railway login`
+yourself (in the background; it opens their browser). It also creates a free account if they don't
+have one. Tell them:
+
+> A Railway page just opened in your browser:
+> 1. Sign in (or sign up with GitHub, the quickest way).
+> 2. Click **Authorize**.
+>
+> Tell me when that's done.
+
+If no browser opens (SSH or remote machine), use `railway login --browserless` and give them the
+link and code it prints.
+
+**d. Deploy.**
+
+```bash
+npm run deploy
+```
+
+This creates or reuses the Railway project and the `discord-bot` service, copies
+`DISCORD_TOKEN`/`DISCORD_GUILD_ID` from `.env` into Railway (never printed), applies
+`.railway/railway.ts` (Dockerfile build, `/health` check, single replica) and uploads this folder.
+If they have several Railway workspaces, `railway list --json` shows them; ask which one, then run
+`RAILWAY_WORKSPACE=<name> npm run deploy`. `RAILWAY_PROJECT_NAME` overrides the project name.
+
+**e. Auto-deploy from GitHub (recommended once it's live).** Afterwards every `git push` ships
+the bot on its own, and only after the GitHub checks pass.
+
+1. The project must be in the user's own GitHub repo. Check `git remote get-url origin`. If it
+   points at the boilerplate they cloned (not their account), or there's no remote:
+   - GitHub CLI missing? Install it yourself (`brew install gh`, `winget install GitHub.cli`, or
+     https://cli.github.com), then run `gh auth login --web` and tell the user to enter the code it
+     shows on the page that opens.
+   - Keep the boilerplate as `upstream` (`git remote rename origin upstream`), commit, then
+     `gh repo create <name> --private --source . --remote origin --push`. Recommend private.
+2. Commit and push any changes, then run:
 
    ```bash
-   npm run deploy
+   npm run deploy -- --github
    ```
 
-   It creates or reuses the Railway project and the `discord-bot` service, copies
-   `DISCORD_TOKEN`/`DISCORD_GUILD_ID` from `.env` into Railway (without printing them), applies
-   `.railway/railway.ts` (Dockerfile build, `/health` healthcheck, restart on failure, single
-   replica) and uploads the code. With several Railway workspaces, set `RAILWAY_WORKSPACE=<name>`
-   first. `RAILWAY_PROJECT_NAME` overrides the project name.
-4. Check it: `railway logs --service discord-bot --lines 50` should show
-   `Connected to Discord`.
+   It connects the service to `origin` on the current branch, records the link in
+   `.railway/github.json` (keyed by Railway project ID, so other people's clones aren't affected),
+   turns on Wait for CI, and waits for the first GitHub deploy to go live. Commit and push
+   `.railway/github.json` afterwards.
+3. If it says Railway can't access the repo, that's a user step:
 
-Redeploy after changes with `npm run deploy` again. Server layout changes (`server:apply`) take
-effect immediately and don't need a deploy, but the bot reads `bot.welcome`/`bot.autoRole` at
-start-up, so redeploy after changing those.
+   > Railway needs permission to see your GitHub repo:
+   > 1. Open https://github.com/apps/railway-app/installations/new
+   > 2. Pick your account, choose **Only select repositories**, select **<repo>**, click
+   >    **Install** (or **Save**).
+   >
+   > Tell me when that's done.
 
-**Auto-deploy from GitHub (optional):** push the repo to GitHub, then in the Railway dashboard:
-click the `discord-bot` service -> **Settings** tab -> **Service Source** -> **Connect Repo** and
-pick the repo (Railway asks them to install its GitHub app the first time). Every push to the
-connected branch then redeploys; turn on **Wait for CI** in the same settings so a failing GitHub
-check doesn't ship. Afterwards run `railway config plan`: if it wants to change the source, add
-`source: github("<owner>/<repo>")` (imported from `railway/iac`) to the service in
-`.railway/railway.ts` so the two agree.
+   Then run `npm run deploy -- --github` again.
 
-If `railway config apply` reports it would delete something, stop and show the user; do not add
-`--confirm-destructive`. A resource added in the dashboard must be added to `.railway/railway.ts`
-(and new secret variables listed there with `preserve()`), or the next apply will try to remove it.
+`npm run deploy -- --unlink-github` goes back to uploading from this folder.
+
+**f. Check it's live.** `railway logs --service discord-bot --lines 50` should show
+`Connected to Discord` and `Slash commands registered`. `npm run doctor` shows whether Railway
+auto-deploys from GitHub. Then ask the user to try `/ping` in Discord.
+
+### Shipping changes later
+
+| Change | How it goes live |
+| --- | --- |
+| Server layout (`server.config.ts` roles/channels/settings) | `npm run server:apply`; instant, no deploy. |
+| Code, commands, features, `bot:` settings | Linked to GitHub: commit and `git push` (after the user OKs it); Railway deploys once CI passes. Not linked: `npm run deploy`. |
+| Token or server ID changed in `.env` | `npm run deploy` (copies secrets, then redeploys). |
+| Hosting settings (`.railway/railway.ts`) | `npm run deploy`. |
+
+Stop any local `npm run dev` before shipping, or two bots answer every command.
+
+If `railway config apply` reports it would delete something, stop and show the user; never add
+`--confirm-destructive`. A resource added in the Railway dashboard must also be added to
+`.railway/railway.ts` (and new secret variables listed there with `preserve()`), or the next apply
+will try to remove it.
 
 ## Troubleshooting
 
@@ -143,3 +198,6 @@ If `railway config apply` reports it would delete something, stop and show the u
 | `Missing Permissions` on apply      | Bot role not at the top, or bot invited with `--minimal`. Run `npm run doctor`.               |
 | Commands answer twice               | Two bots are running (local `npm run dev` and Railway). Stop one.                             |
 | Railway healthcheck fails           | Logs: `railway logs --service discord-bot`. Usually a bad token or missing variable.          |
+| `railway: command not found`         | Step 7b: install it yourself with `npm i -g @railway/cli`.                                     |
+| Pushed but Railway didn't deploy     | GitHub checks failed (Railway waits for CI): `gh run list`, fix, push again. Or not linked: `npm run doctor`. |
+| Railway can't access the GitHub repo | Step 7e.3: the user gives Railway's GitHub app access to that repo.                           |

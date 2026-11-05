@@ -45,8 +45,10 @@ Everything else is yours. These need the user (give them the steps above):
 | Invite another bot (MEE6, Carl-bot, etc.) | In Discord (desktop or browser): **server name → Server Settings → App Directory** → search the bot → **Add App** → pick the server → **Authorize**. Or use the invite button on the bot's official site. Needs **Manage Server**. Then you add it to `otherBots`. |
 | Move the bot's role above others | **Server Settings → Roles** → drag the bot's role to the top. |
 | Turn on Community (needed for announcement/stage channels, the rules channel, onboarding, discovery) | **server name → Server Settings → Enable Community → Get Started**, follow the steps, then **Finish Setup**. Discord requires: verification level at least "low" (verified email), explicit content filter on all members, a rules channel and a community-updates channel. The starter config already sets the first two; pick #rules and #mod-log in the wizard. |
-| Log in to Railway | You run `railway login`; they approve in the browser that opens. |
+| Sign in to Railway (also creates the account) | You install the CLI if missing (`npm i -g @railway/cli`) and run `railway login`; they sign in and click **Authorize** in the browser page that opens. |
 | Pay for Railway / pick a workspace | Their call; ask before the first deploy. |
+| Sign in to GitHub (for auto-deploys) | You install `gh` if missing and run `gh auth login --web`; they enter the code shown in the browser. |
+| Let Railway see their GitHub repo | Only if `npm run deploy -- --github` says it can't: https://github.com/apps/railway-app/installations/new → their account → **Only select repositories** → the repo → **Install**. |
 | Upload a server icon/banner image | Ask them to drop the image file into the project (e.g. `assets/icon.png`); you wire it up. |
 
 ## Map of the project
@@ -59,9 +61,12 @@ Everything else is yours. These need the user (give them the steps above):
 | Slash commands (`/something`) | `src/bot/commands/<name>.ts` + register in `src/bot/commands/index.ts` | same as above |
 | Bot message look | Use `card()` from `src/bot/ui.ts` (see Styling) | |
 | Hosting settings | `.railway/railway.ts` | `npm run deploy` |
+| Put it online / auto-deploy on push | (nothing to edit) | `npm run deploy`, then `npm run deploy -- --github` (`discord-setup` step 7) |
 
-Changes to `server.config.ts` structure apply instantly with `server:apply`; code changes (features,
-commands, `bot:` settings) only go live after `npm run deploy` (or locally with `npm run dev`).
+Changes to `server.config.ts` structure apply instantly with `server:apply`. Code changes
+(features, commands, `bot:` settings) go live on Railway with `git push` when GitHub auto-deploys are
+on (`npm run doctor` says), otherwise with `npm run deploy`. Try them locally with `npm run dev`
+first.
 
 Detailed playbooks: `discord-setup` (setup, troubleshooting, Railway), `discord-server` (config
 workflow, deleting, renaming), `discord-bot-feature` (commands and code). Read them when you go

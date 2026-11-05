@@ -1,9 +1,21 @@
 // Railway Infrastructure as Code: `railway config plan` previews, `railway config apply` applies.
 // `npm run deploy` runs the whole flow. Secrets are set from .env and kept with preserve().
-import { defineRailway, preserve, project, service } from "railway/iac";
+import { readFileSync } from "node:fs";
+import { defineRailway, github, preserve, project, service } from "railway/iac";
+
+// Railway project ID -> GitHub repo it auto-deploys from. Written by `npm run deploy -- --github`.
+// Keyed by project so a clone of this repo never deploys someone else's GitHub repo.
+const links = JSON.parse(readFileSync(new URL("./github.json", import.meta.url), "utf8")) as Record<
+  string,
+  { repo: string; branch: string }
+>;
 
 export default defineRailway((ctx) => {
+  const link = ctx.projectId ? links[ctx.projectId] : undefined;
+
   const bot = service("discord-bot", {
+    // Linked: every push to the branch deploys once GitHub CI passes. Otherwise `railway up` uploads.
+    ...(link ? { source: github(link.repo, { branch: link.branch, checkSuites: true }) } : {}),
     build: { builder: "DOCKERFILE", dockerfilePath: "Dockerfile" },
     // One gateway connection only: extra replicas or overlapping deploys answer commands twice.
     replicas: 1,

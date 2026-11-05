@@ -10,6 +10,7 @@ import { hasBits, missingPermissions, toBits } from "../src/server/permissions.t
 import { buildPlan, countOps } from "../src/server/plan.ts";
 import { parseServerConfig, type ServerConfig } from "../src/server/schema.ts";
 import { fetchApplication, inviteUrl, main, ROOT } from "./_shared.ts";
+import { isSupportedCliVersion, MIN_RAILWAY_CLI, readLinks } from "./railway-deploy.ts";
 
 let failures = 0;
 const ok = (msg: string) => console.log(`  ok   ${msg}`);
@@ -120,12 +121,24 @@ main(async () => {
       `server.config.ts has ${n.create + n.update + n.reorder} pending change(s): run \`npm run server:plan\``,
     );
 
-  const railway = spawnSync("railway", ["whoami"], { encoding: "utf8" });
-  if (railway.error)
-    warn("Railway CLI not installed (only needed to deploy): https://docs.railway.com/cli");
-  else if (railway.status !== 0)
+  const run = (args: string[]) => spawnSync("railway", args, { encoding: "utf8" });
+  const version = run(["--version"]);
+  if (version.error)
+    warn("Railway CLI not installed (needed to go online): `npm i -g @railway/cli`");
+  else if (!isSupportedCliVersion(version.stdout))
+    warn(`Railway CLI is too old (need ${MIN_RAILWAY_CLI}+): run \`railway upgrade --yes\``);
+  else if (run(["whoami"]).status !== 0)
     warn("Railway CLI is installed but not logged in: run `railway login`");
-  else ok("Railway CLI is logged in");
+  else {
+    ok("Railway CLI is installed and logged in");
+    const status = run(["status", "--json"]);
+    const projectId =
+      status.status === 0 ? (JSON.parse(status.stdout || "{}") as { id?: string }).id : undefined;
+    const link = projectId ? readLinks()[projectId] : undefined;
+    if (!projectId) warn("No Railway project linked yet: `npm run deploy` creates one");
+    else if (link) ok(`Railway auto-deploys from GitHub ${link.repo} (${link.branch})`);
+    else warn("Railway deploys by upload; `npm run deploy -- --github` turns on auto-deploys");
+  }
 
   console.log(failures === 0 ? "\nAll good." : `\n${failures} problem(s) to fix.`);
   return failures === 0 ? 0 : 1;

@@ -29,7 +29,8 @@ can do, recipes and message styling. The others go deeper:
    messages.
 4. **Rename, don't recreate.** To rename a channel, category or role, change `name` and set
    `renamedFrom: "<old name>"`, so the existing one (and its messages/members) is kept.
-5. **Railway.** Deploy with `npm run deploy`. Never pass `--confirm-destructive`, and never run
+5. **Railway.** Install the Railway CLI yourself if it's missing (`npm i -g @railway/cli`) and
+   run `railway login` for the user (they approve in the browser). Deploy with `npm run deploy`. Never pass `--confirm-destructive`, and never run
    `railway delete`, `railway down`, `railway service delete` or `railway variable delete`
    without the user's explicit go-ahead for that exact command. Creating a Railway project can
    cost money: confirm with the user before the first deploy.
@@ -40,7 +41,7 @@ can do, recipes and message styling. The others go deeper:
 
 | Command                   | What it does                                                                                                                                   |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run doctor`          | Checks token, invite, permissions, intents, role order, config, Railway login. Start here when anything is off.                                |
+| `npm run doctor`          | Checks token, invite, permissions, intents, role order, config, Railway CLI/login and GitHub auto-deploys. Start here when anything is off. |
 | `npm run invite`          | Prints the bot's invite link for the user's server.                                                                                            |
 | `npm run server:plan`     | Shows what would change in Discord to match `server.config.ts`. Read-only.                                                                     |
 | `npm run server:apply`    | Backs up the current structure, applies the plan, verifies.                                                                                    |
@@ -48,7 +49,7 @@ can do, recipes and message styling. The others go deeper:
 | `npm run server:export`   | Writes the live server as `server.config.exported.ts` (to adopt an existing server). `-- --from backups/<file>.json` exports a backup instead. |
 | `npm run dev`             | Runs the bot locally, restarting on file changes.                                                                                              |
 | `npm run commands:deploy` | Registers slash commands without starting the bot (the bot also does this on start).                                                           |
-| `npm run deploy`          | Creates/updates the Railway project and deploys (needs `railway login` first).                                                                 |
+| `npm run deploy`          | Creates/updates the Railway project, syncs secrets and settings, deploys. `-- --github` links the GitHub repo so every push deploys after CI. |
 | `npm run logs` | Streams the deployed bot's Railway logs. |
 | `npm run check`           | Typecheck + lint + tests.                                                                                                                      |
 | `npm run skills:sync`     | Copies `.agents/skills` to the other agent folders after editing a skill.                                                                      |
@@ -69,6 +70,7 @@ src/server/               Server-as-code engine: schema, plan (diff), apply, exp
 src/discord/              Discord REST adapters.
 scripts/                  CLI entry points behind the npm scripts.
 .railway/railway.ts       Railway service settings (Infrastructure as Code).
+.railway/github.json      Railway project ID -> GitHub repo it auto-deploys from (written by deploy --github).
 Dockerfile                Production image Railway builds.
 ```
 

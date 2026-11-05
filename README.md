@@ -19,7 +19,7 @@ Discord Magic is a Discord server and bot that your coding agent builds, styles 
 - **Your own space.** No algorithm decides who sees your posts. Your members get your announcements.
 - **Real conversations.** Chat, voice, forums and events in one place, live, every day.
 - **People help each other.** A good community answers questions and shares wins while you sleep.
-- **Free to run.** Discord costs nothing. This bot runs 24/7 for the price of a small Railway plan.
+- **Cheap to run.** Discord costs nothing. This bot runs 24/7 on a small Railway plan.
 - **It grows with you.** Start with a few channels, add roles, automations and other bots as you go.
 
 ## Why Discord Magic
@@ -27,7 +27,7 @@ Discord Magic is a Discord server and bot that your coding agent builds, styles 
 - **Just ask.** "Add a private channel for moderators", "make the roles purple", "put it online". Your agent plans the change, shows you, then applies it.
 - **Looks good out of the box.** A complete starter server, and bot messages in Discord's modern card style with your brand colour.
 - **Safe by default.** Every change is previewed first and the old structure is backed up. Nothing gets deleted unless you name it.
-- **Online in one command.** `npm run deploy` puts the bot on Railway and keeps it running.
+- **Online in one command.** `npm run deploy` puts the bot on Railway. Your agent installs the Railway CLI if you don't have it, and you just sign in. Link GitHub once and every push goes live by itself.
 - **Made for beginners.** When something needs you (a click in Discord, a toggle), your agent tells you exactly where, in a few short steps.
 
 | Ask your agent                                         | What happens                                                 |
@@ -80,7 +80,9 @@ npm run invite           # add the bot to your server
 npm run doctor           # fix anything marked FAIL
 npm run server:plan      # preview the server
 npm run server:apply     # build it
-npm run deploy           # put it online (railway login first)
+npm i -g @railway/cli    # if you don't have it, then: railway login
+npm run deploy           # put it online
+npm run deploy -- --github   # optional: every git push deploys
 ```
 
 Licensed under AGPL-3.0: you can build on it, and if you distribute your changes or run them as a network service, you share their source under the same license.
