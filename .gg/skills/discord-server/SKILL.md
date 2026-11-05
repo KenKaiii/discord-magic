@@ -1,6 +1,6 @@
 ---
 name: discord-server
-description: Customise the Discord server through server.config.ts - server name, description, icon, settings, roles, categories, channels, channel permissions, welcome message and auto-role - using the plan/apply workflow. Use for any request to change how the Discord server looks or who can see/do what.
+description: Customise the Discord server through server.config.ts - server name, description, icon, settings, roles, categories, channels, channel permissions, start-here guide, welcome message and auto-role - using the plan/apply workflow. Use for any request to change how the Discord server looks or who can see/do what.
 ---
 
 # Customise the Discord server

@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import exampleConfig from "../../server.config.ts";
+import userConfig from "../../server.config.ts";
 import { applyPlan } from "./apply.ts";
 import { renderConfigSource, snapshotToConfig } from "./export.ts";
 import { formatPlan } from "./format.ts";
 import { buildPlan, countOps, hasErrors, type Plan } from "./plan.ts";
 import { parseServerConfig, type ServerConfigInput } from "./schema.ts";
 import { BOT_ROLE_ID, type FakeGuild, freshServer, GUILD_ID } from "./testing/fake-guild.ts";
+import exampleConfig from "./testing/starter-config.ts";
 
 const config = (input: ServerConfigInput) => parseServerConfig(input);
 
@@ -21,6 +22,12 @@ async function replan(guild: FakeGuild, input: ServerConfigInput, opts = {}): Pr
 }
 
 describe("server sync", () => {
+  it("builds the user's own server.config.ts on a fresh guild and converges", async () => {
+    const guild = freshServer();
+    await sync(guild, userConfig);
+    expect((await replan(guild, userConfig)).ops).toEqual([]);
+  });
+
   it("builds the example server on a fresh guild and converges to zero changes", async () => {
     const guild = freshServer();
     const first = await sync(guild, exampleConfig);

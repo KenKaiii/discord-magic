@@ -1,10 +1,10 @@
 import type { Server } from "node:http";
 import { GatewayIntentBits, type Message, MessageFlags } from "discord.js";
 import { afterEach, describe, expect, it } from "vitest";
-import exampleConfig from "../../server.config.ts";
 import { EnvError, loadEnv } from "../env.ts";
 import { startHealthServer } from "../health.ts";
 import { parseServerConfig } from "../server/schema.ts";
+import exampleConfig from "../server/testing/starter-config.ts";
 import { commands } from "./commands/index.ts";
 import { findGuide, guideCard } from "./features/guide.ts";
 import { activeFeatures, privilegedIntentsNeeded, requiredIntents } from "./features/index.ts";

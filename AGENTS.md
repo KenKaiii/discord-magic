@@ -80,6 +80,9 @@ Dockerfile                Production image Railway builds.
   the `.ts` extension, use `import type` for types, and don't use `enum`, `namespace` or
   constructor parameter properties (`npm run typecheck` enforces this).
 - Biome formats and lints (`npm run fix`). Tests are `*.test.ts` next to the code (Vitest).
+- `server.config.ts` belongs to the user: tests only check that it's valid and builds cleanly. Tests
+  that need fixed names use `src/server/testing/starter-config.ts`. Never undo the user's config
+  choices to make `npm run check` pass.
 - Keep pure logic (diffing, formatting) separate from Discord calls so it can be tested; the
   server engine is tested against an in-memory fake guild in `src/server/testing/`.
 - Dependencies are pinned to exact versions. Add with `npm i -E <pkg>`; check for updates with
