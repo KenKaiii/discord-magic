@@ -9,10 +9,13 @@
   <a href="https://railway.com"><img src="https://img.shields.io/badge/Deploys%20on-Railway-b0b6ff?style=for-the-badge&logo=railway&logoColor=white" alt="Deploys on Railway"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="AGPL-3.0 License"></a>
   <a href="https://youtube.com/@kenkaidoesai"><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube"></a>
-  <a href="https://skool.com/kenkai"><img src="https://img.shields.io/badge/Skool-Community-b0b6ff?style=for-the-badge" alt="Skool"></a>
+  <a href="https://www.skool.com/raid"><img src="https://img.shields.io/badge/Skool-Free%20community-b0b6ff?style=for-the-badge" alt="Free Skool community"></a>
 </p>
 
 Discord Magic is a Discord server and bot that your coding agent builds, styles and runs for you. You say what you want; it does the rest.
+
+> [!TIP]
+> **Want to build your own apps with AI?** A free 7-day build challenge and 20+ step-by-step projects are in my free community: **[skool.com/raid](https://www.skool.com/raid)**
 
 ## Why have a Discord server
 
@@ -96,4 +99,7 @@ Licensed under AGPL-3.0: you can build on it, and if you distribute your changes
 
 ## Learn with me
 
-Come build with me in my [Skool community](https://skool.com/kenkai). Get help, share what you're making, and learn how to get more out of AI.
+New to building with AI? Start in **[RAID](https://www.skool.com/raid)**, my free community:
+
+- A free 7-day challenge: build your first app, one short lesson a day
+- 20+ step-by-step projects you can build yourself
